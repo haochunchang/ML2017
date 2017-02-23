@@ -5,7 +5,7 @@ matrixA = np.loadtxt(sys.argv[1], delimiter=',')
 matrixB = np.loadtxt(sys.argv[2], delimiter=',')
 
 result = np.dot(matrixA, matrixB)
-result = sorted(result)
+result = sorted(list(result.astype(int)))
 
 with open("ans_one.txt", "w") as f:
     for ans in result:
