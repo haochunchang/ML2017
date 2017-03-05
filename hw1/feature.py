@@ -1,5 +1,6 @@
 import numpy as np
-import random
+import random, math
+import pandas as pd
 
 class Feature(object):
     '''
@@ -13,15 +14,20 @@ class Feature(object):
         label = []
         train.drop(['測站'], axis=1, inplace=True)
         train.replace('NR', 0, inplace=True)
-        
-        for month in range(1, 13):
-            for day in range(1, 21):
-                single_day = train.groupby(['日期']).get_group("2014/"+str(month)+"/"+str(day))
-                single_day = single_day.drop(['日期', '測項'], axis=1)
-                for hr in range(14):
-                    feature_lst.append(np.array(single_day.iloc[:, hr:hr+9], dtype=np.float32))
-                    label.append(int(single_day.iloc[9, hr+10]))
+        train = train.groupby(['日期'])        
 
+               
+        for i in range(1, 13):
+            frames = [train.get_group("2014/"+str(i)+"/"+str(day)) for day in range(1,21)]
+            # set indexes of each frame to the same
+            for frame in frames[1:]:
+                frame.set_index(frames[0].index, inplace=True)
+            single_month = pd.concat(frames, axis=1)
+            single_month = single_month.drop(['測項', '日期'], axis=1)    
+            for hr in range(len(single_month.columns) - 9):
+                feature_lst.append(np.array(single_month.iloc[:, hr:hr+9], dtype=np.float32))
+                label.append(int(single_month.iloc[9, hr+9]))
+                
         # Normalization
         for i in range(len(feature_lst)):
             f = feature_lst[i]
@@ -30,9 +36,26 @@ class Feature(object):
             for j in range(len(mu)):
                 if std[j] != 0:
                     feature_lst[i][j,] = (f[j,] - mu[j]) / std[j]
+        
+        # Shuffle feature order
+        fea_lab = list(zip(feature_lst, label))
+        random.shuffle(fea_lab)
+        feature_lst, label = zip(*fea_lab)
 
-        return feature_lst, label
+        return list(feature_lst), list(label)
     
+    def shuffle(self):
+        '''    
+        Shuffle feature order
+        '''
+        fea_lab = list(zip(self.__data, self.__label))
+        random.shuffle(fea_lab)
+        feature_lst, label = zip(*fea_lab)
+        self.__data = list(feature_lst)
+        self.__label = list(label)
+
+        return self
+ 
     def flatten(self):
         '''
         Flatten feature and add bias
