@@ -12,17 +12,11 @@ def train_lr(train, model = 1):
     model: # of order of the regression line
     Return trained W matrix
     '''
-    # For plotting
-    history_e = []
-    history_l = []
-    
     # Model initialization 
     W = np.zeros((1,163))
 
-    lr = 10
+    lr = 10e-3
     iteration = 10000
-    pre_grad = 0
-    #while delta_loss > 10e-6:
     for epoch in range(1, iteration+1):    
         grad = 0 
         loss = 0
@@ -31,19 +25,12 @@ def train_lr(train, model = 1):
             y = np.dot(W, train[i])  
             y_hat = train.get_label(i)
 
-            loss += (y - y_hat) ** 2
-            grad += (y - y_hat) * train[i] * 2  
+            loss += ((y - y_hat) ** 2) / (2 * len(train))
+            grad += ((y - y_hat) * train[i]) / len(train)  
                 
             # Update parameters
-        pre_grad += grad ** 2
-        W = W - (lr / np.sqrt(pre_grad)) * grad
-        #print(loss / len(train))
-        # Plot loss v.s. epoch
-        history_e.append(epoch)
-        history_l.append(float(loss / len(train)))
-    print("Training loss: %f" % (loss / len(train)))
-    plt.plot(history_e, history_l)
-    plt.show()
+        W = W - lr * grad
+    print("Training loss: %f" % np.sqrt(loss))
     
     return W
 
@@ -54,13 +41,11 @@ def validate(W, val_feature, val_label):
     '''
     loss = 0
     for i in range(len(val_feature)):
-        y = 0
-        for j in range(1, len(W) + 1):
-                y = y + np.dot(W[j - 1], val_feature[i] ** j) 
+        y = np.dot(W, val_feature[i]) 
         y_hat = val_label[i]
-        loss = loss + (y_hat - y) ** 2
-    loss = loss / len(val_feature)
-    print(loss) 
+        loss += ((y_hat - y) ** 2) / (2 * len(train))
+    
+    print("Validation loss: %f" % np.sqrt(loss)) 
     return loss  
 
 def test_lr(W, test, outfilepath):
@@ -73,10 +58,7 @@ def test_lr(W, test, outfilepath):
         o.write("id,value\n")
         for i in range(len(test)):
             y = np.dot(W, test[i])    
-            if y < 0:
-                y = str(np.array([0]))[1:-1]
-            else:
-                y = str(y)[2:-2]
+            y = str(y)[2:-2]
             o.write("id_"+str(i)+","+y)
             o.write("\n")
     print("Testing result stored in %s" % outfilepath)
@@ -97,23 +79,14 @@ def lr_main(train, test, outfilepath):
     # Flatten feature and add bias into (163,)
     train.flatten()
     
+    val_f, val_l = train.sample_val(240)
     W_best = train_lr(train, model=1)
-    '''
-    # Training    
-    best_err = 10e8
-    for i in range(1, 2):
-        val_feature, val_label = train.sample_val(len(train) // 5)
-        W = train_lr(train, model=i)
-
-        # Validation    
-        err = validate(W, val_feature, val_label)
-        if err < best_err:
-            best_err = err
-            W_best = W
+    validate(W_best, val_f, val_l) 
     
-    with open("./model/W.pkl", "wb") as o:
+    
+    with open("./model/W_best.pkl", "wb") as o:
         pickle.dump(W_best, o)
-    '''
+    
     # Testing and output result
     test = pd.read_csv(test, sep=",", header=None)
     test_lr(W_best, test, outfilepath)

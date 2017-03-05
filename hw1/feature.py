@@ -12,11 +12,10 @@ class Feature(object):
     def _preprocess(self, train):
         feature_lst = []
         label = []
-        train.drop(['測站'], axis=1, inplace=True)
-        train.replace('NR', 0, inplace=True)
+        train = train.drop(['測站'], axis=1)
+        train = train.replace('NR', 0)
         train = train.groupby(['日期'])        
 
-               
         for i in range(1, 13):
             frames = [train.get_group("2014/"+str(i)+"/"+str(day)) for day in range(1,21)]
             # set indexes of each frame to the same
@@ -37,12 +36,7 @@ class Feature(object):
                 if std[j] != 0:
                     feature_lst[i][j,] = (f[j,] - mu[j]) / std[j]
         
-        # Shuffle feature order
-        fea_lab = list(zip(feature_lst, label))
-        random.shuffle(fea_lab)
-        feature_lst, label = zip(*fea_lab)
-
-        return list(feature_lst), list(label)
+        return feature_lst, label
     
     def shuffle(self):
         '''    
@@ -104,15 +98,16 @@ class TestFeature(Feature):
     '''
     def __init__(self, data):
         Feature.__init__(self, data)
-        self.__data = self._preprocess(data)
+        self.__data, self.__label = self._preprocess(data)
         
     def _preprocess(self, test):
         feature_lst = []
         label = []
-        test.replace('NR', 0, inplace=True)
-           
+        test = test.replace('NR', 0)
+        test = test.groupby(0)        
+   
         for i in range(240):
-            single_day = test.groupby(0).get_group("id_"+str(i))
+            single_day = test.get_group("id_"+str(i))
             single_day = single_day.drop(single_day.columns[:2], axis=1)
             feature_lst.append(np.array(single_day, dtype=np.float32))
 
