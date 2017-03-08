@@ -12,9 +12,6 @@ def train_lr(train, model = 1):
     model: # of order of the regression line
     Return trained W matrix
     '''
-    #his_e = []
-    #his_l = []
-    
     # Model initialization 
     W = np.zeros((19,9))
     std = train.labelstd
@@ -44,11 +41,7 @@ def train_lr(train, model = 1):
             total_loss += loss
         total_loss = np.sqrt(total_loss * std + mu)
         print(total_loss)
-        #his_e.append(epoch)
-        #his_l.append(total_loss)
     
-    #plt.plot(his_e, his_l)
-    #plt.show()        
     print("Training loss of model %d: %f" % (model, total_loss)) 
     return W
  
