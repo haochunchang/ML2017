@@ -79,10 +79,10 @@ def lr_main(train, test, outfilepath):
     
     train = feature.Feature(training_data)    
     W_best = train_lr(train, model=1)
-    
+    '''
     with open("./model/W.pkl", "wb") as o:
         pickle.dump(W_best, o)
-    
+    '''
     # Testing and output result
     test = pd.read_csv(test, sep=",", header=None)
     test_lr(W_best, test, outfilepath, train)

@@ -31,7 +31,7 @@ def lr_main(train, test, outfilepath):
     training_data = pd.read_csv(train, sep=",", encoding="big5") 
     
     train = feature.Feature(training_data)   
-    with open("./model/W.pkl", "rb") as w:
+    with open("./model/W_sbl.pkl", "rb") as w:
         W_best = pickle.load(w)
  
     # Testing and output result
