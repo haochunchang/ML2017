@@ -1,1 +1,1 @@
-python3.5 lr_sbl.py $1 $2 $3
+python3.5 lr.py $1 $2 $3
