@@ -64,6 +64,11 @@ class Feature(object):
         self.__label = self.__label[start:stop]
         return self
     
+    def square(self):
+        for i in range(len(self.__data)):
+            self.__data[i] = self.__data[i] ** 2 
+        return self
+
     def get_label_std(self):
         return self.labelmu   
     
@@ -141,4 +146,10 @@ class TestFeature(object):
         '''
         for i in range(len(self.__data)):
             self.__data[i] = np.insert(self.__data[i].flatten(), 0, 1)
+    
+    def square(self):
+        for i in range(len(self.__data)):
+            self.__data[i] = self.__data[i] ** 2 
+        return self
+
 
