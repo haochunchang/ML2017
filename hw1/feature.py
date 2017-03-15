@@ -66,8 +66,33 @@ class Feature(object):
     
     def square(self):
         for i in range(len(self.__data)):
-            self.__data[i] = self.__data[i] ** 2 
+            self.__data[i] = np.square(self.__data[i])
         return self
+    
+    def multiply(self, factor):
+        for i in range(len(self.__data)):
+            self.__data[i] = self.__data[i] * factor
+        return self
+
+    def bagging(self, other):
+        '''
+        Sample training data with replacement.
+        '''
+        new_f = []
+        new_l = []
+        new_f2 = []
+        new_l2 = []
+        for i in range(len(self.__data)):
+            x = random.randint(0, len(self.__data) - 1)
+            new_f.append(self.__data[x])
+            new_l.append(self.__label[x])
+            new_f2.append(other.__data[x])
+            new_l2.append(other.__label[x])
+        self.__data = new_f
+        self.__label = new_l
+        other.__data = new_f2
+        other.__label = new_l2
+        return self, other    
 
     def get_label_std(self):
         return self.labelmu   
@@ -149,7 +174,12 @@ class TestFeature(object):
     
     def square(self):
         for i in range(len(self.__data)):
-            self.__data[i] = self.__data[i] ** 2 
+            self.__data[i] = np.square(self.__data[i]) 
+        return self
+    
+    def multiply(self, factor):
+        for i in range(len(self.__data)):
+            self.__data[i] = self.__data[i] * factor
         return self
 
 
