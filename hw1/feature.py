@@ -57,7 +57,17 @@ class Feature(object):
         train_norm = np.insert(train_norm, len(train_norm), train_norm[9, :] ** 2, axis=0)
         train_norm = np.insert(train_norm, len(train_norm), train_norm[8, :] ** 2, axis=0)
         train_norm = np.insert(train_norm, len(train_norm), train_norm[8, :] * train_norm[9, :], axis=0)
- 
+        train_norm = np.insert(train_norm, len(train_norm), train_norm[5, :] ** 2, axis=0)       
+        train_norm = np.insert(train_norm, len(train_norm), train_norm[6, :] ** 2, axis=0)  
+        train_norm = np.insert(train_norm, len(train_norm), train_norm[7, :] ** 2, axis=0) 
+        train_norm = np.insert(train_norm, len(train_norm), train_norm[12, :] ** 2, axis=0)
+        
+        # Extract labels
+        self.__label = [] 
+        for mon in range(12):
+            for hr in range(471):
+                self.__label.append(train_norm[9, (mon*480)+hr+9])
+         
         # Standardization
         self.mu = train_norm.mean(axis=1)
         self.std = train_norm.std(axis=1)
@@ -65,18 +75,15 @@ class Feature(object):
             if self.std[j] != 0:
                 train_norm[j,] = (train_norm[j,] - self.mu[j]) / self.std[j]
         
-        # Extract standardized labels
-        self.__label = [] 
-        for mon in range(12):
-            for hr in range(471):
-                self.__label.append(train_norm[9, (mon*480)+hr+9])
-        
         # Shrink unrelevent feature into 0.0 by PCC to pm2.5
         cor_mat = np.corrcoef(train_norm)[9, :]
+        print(cor_mat)
+        d = []
         for i in range(len(cor_mat)):
             if abs(cor_mat[i]) < 0.2:
-                train_norm[i, :] = train_norm[i, :] * 0.0
-         
+                d.append(i)         
+        train_norm = np.delete(train_norm, d, axis=0)
+ 
         # Extract features
         self.__data = []
         for mon in range(12):
@@ -84,16 +91,13 @@ class Feature(object):
                 feature = train_norm[:, (mon*480)+hr:(mon*480)+hr+9]
                 self.__data.append(feature)
        
-        return self
+        return self, d
 
     def add_bias(self):
         '''
         flatten feature and add bias
-        Also add 9th hr pm2.5 ** 2 and 9th hr pm10 ** 2
         '''
         for i in range(len(self.__data)):
-            pm25 = self.__data[i][9, 8] ** 3
-            #self.__data[i] = np.insert(self.__data[i], len(self.__data[i]), pm25) 
             self.__data[i] = np.insert(self.__data[i], 0, 1)
     
     def shuffle(self):
@@ -193,16 +197,14 @@ class TestFeature(object):
 
         return feature_lst, label, mu, std
     
-    def scaling(self):
-        '''
-        Scale feature value by correlation coefficient of pm2.5
-        Original * 100 * abs(PCC)
-        '''
+    def scaling(self, d):
+        
         test = self.raw
         test = test.iloc[:, 2:].replace('NR', 0)
+        
         test = np.array(test, dtype=np.float32)
         test_norm = np.zeros((18, 1))
-    
+
         for i in range(240):
             test_norm = np.append(test_norm, test[i*18:i*18+18, :], axis=1) 
          
@@ -212,21 +214,21 @@ class TestFeature(object):
         test_norm = np.insert(test_norm, len(test_norm), test_norm[9, :] ** 2, axis=0)
         test_norm = np.insert(test_norm, len(test_norm), test_norm[8, :] ** 2, axis=0)
         test_norm = np.insert(test_norm, len(test_norm), test_norm[8, :] * test_norm[9, :], axis=0)
- 
+        test_norm = np.insert(test_norm, len(test_norm), test_norm[5, :] ** 2, axis=0) 
+        test_norm = np.insert(test_norm, len(test_norm), test_norm[6, :] ** 2, axis=0) 
+        test_norm = np.insert(test_norm, len(test_norm), test_norm[7, :] ** 2, axis=0)
+        test_norm = np.insert(test_norm, len(test_norm), test_norm[12, :] ** 2, axis=0)
 
         # Normalization
         for j in range(test_norm.shape[0]):
             if self.__std[j] != 0:
                 test_norm[j,] = (test_norm[j,] - self.__mu[j]) / self.__std[j]
         
-        cor_mat = np.corrcoef(test_norm)[9, :]
-        for i in range(len(cor_mat)):
-            if abs(cor_mat[i]) < 0.2:
-                test_norm[i, :] = test_norm[i, :] * 0.0
-   
+        test_norm = np.delete(test_norm, d, axis=0)
+
         self.__data = []
         for i in range(240):
-            feature = test_norm[:, i*9:i*9+9]
+            feature = test_norm[:, i*9:(i+1)*9]
             self.__data.append(feature)
 
         return self
@@ -236,8 +238,6 @@ class TestFeature(object):
         flatten feature and add bias
         '''
         for i in range(len(self.__data)): 
-            pm25 = self.__data[i][9, 8] ** 3
-            #self.__data[i] = np.insert(self.__data[i], len(self.__data[i]), pm25) 
             self.__data[i] = np.insert(self.__data[i], 0, 1)
 
     def __getitem__(self, index):
