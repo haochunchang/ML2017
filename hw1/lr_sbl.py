@@ -31,13 +31,13 @@ def lr_main(train, test, outfilepath):
     training_data = pd.read_csv(train, sep=",", encoding="big5") 
     
     train = feature.Feature(training_data)   
-    with open("./model/W_sbl.pkl", "rb") as w:
+    with open("./model/W_5_88705.pkl", "rb") as w:
         W_best = pickle.load(w)
- 
+     
     # Testing and output result
     test = pd.read_csv(test, sep=",", header=None)
     test_lr(W_best, test, outfilepath, train)
-
+    
 if __name__ == "__main__":
     train = sys.argv[1]
     test = sys.argv[2]
