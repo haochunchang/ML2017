@@ -61,7 +61,7 @@ class Feature(object):
         train_norm = np.insert(train_norm, len(train_norm), train_norm[6, :] ** 2, axis=0)  
         train_norm = np.insert(train_norm, len(train_norm), train_norm[7, :] ** 2, axis=0) 
         train_norm = np.insert(train_norm, len(train_norm), train_norm[12, :] ** 2, axis=0)
-        
+ 
         # Extract labels
         self.__label = [] 
         for mon in range(12):
@@ -218,7 +218,7 @@ class TestFeature(object):
         test_norm = np.insert(test_norm, len(test_norm), test_norm[6, :] ** 2, axis=0) 
         test_norm = np.insert(test_norm, len(test_norm), test_norm[7, :] ** 2, axis=0)
         test_norm = np.insert(test_norm, len(test_norm), test_norm[12, :] ** 2, axis=0)
-
+ 
         # Normalization
         for j in range(test_norm.shape[0]):
             if self.__std[j] != 0:
