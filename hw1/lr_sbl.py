@@ -58,7 +58,7 @@ def lr_main(train, test, outfilepath):
     train, d = train.scaling()
     train.add_bias()    
 
-    with open("./model/W_5_85519.pkl", "rb") as w:
+    with open("./model/W_sbl.pkl", "rb") as w:
         W_best = pickle.load(w)
      
     # Testing and output result
