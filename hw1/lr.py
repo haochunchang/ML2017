@@ -40,7 +40,7 @@ def train_lr(train, model = 1):
             W -= (lr / rms_g) * grad
             total_loss += loss
         total_loss = np.sqrt(total_loss * std + mu)
-        print(total_loss)
+        #print(total_loss)
     
     print("Training loss of model %d: %f" % (model, total_loss)) 
     return W
