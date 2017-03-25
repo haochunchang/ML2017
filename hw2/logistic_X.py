@@ -3,9 +3,12 @@ import numpy as np
 import sys, pickle
 import feature
 
-def activate(x):
+def activate(x, threshold):
+    return (x >= threshold).astype(np.int)
+
+def sigmoid(x):
     sigmoid = 1.0 / (1.0+np.exp(-x))
-    return (sigmoid >= 0.5).astype(np.int)
+    return sigmoid
 
 def dsigmoid(x):
     ds = np.exp(-x) / ((1.0+np.exp(-x)) ** 2)
@@ -16,23 +19,32 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     train = feature.Xfeature(train_data, labels).preprocess()
     
     # Normalization
-    train = train.normalize()
+    train = train.bucketize()
     train.add_bias()  
 
     nbatch = len(train) // batch_size + 1
-    pre_grad = 0
-    rho = 0.9
+    pre_grad1, pre_grad2 = (0, 0)
     for i in range(1, epoch+1):
         err = 0
         for j in range(nbatch):
             
             batch_x, batch_y = train.sample(batch_size)
-            y_hat = activate(np.dot(batch_x, W))
-            grad = -np.dot(batch_x.T, (batch_y - y_hat)) # L = cross entropy
-            loss = np.absolute(batch_y - y_hat).sum()            
+            z = sigmoid(np.dot(batch_x, W[0])) #h (batch_size, 54)
+            y_hat = activate(z, 0.5)
 
-            pre_grad = rho * pre_grad + (1-rho) * (grad ** 2)
-            W -= (lr / np.sqrt(pre_grad+1e-8)) * grad
+            # L = cross entropy
+            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + lamb * W[0] / batch_size
+
+            # Record previous gradients
+            pre_grad1 += grad1 ** 2
+            #pre_grad2 += grad2 ** 2
+            
+            # Update parameters
+            W[0] -= (lr / np.sqrt(pre_grad1+1e-8)) * grad1
+            #W[1] -= (lr / np.sqrt(pre_grad2+1e-8)) * grad2
+
+            # total number of misclassification
+            loss = np.absolute(batch_y - y_hat).sum()
             err += loss
         if i % 100 == 0:
             print('Training accuracy after %d epoch: %f' %(i, 1 - err / len(train)))
@@ -46,14 +58,15 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.normalize()
+    test = test.bucketize()
     test.add_bias()
 
     with open(outfilepath, 'w') as o:
         o.write("id,label\n")
-        for i in range(len(test)):
-            y = activate(np.dot(test[i], W))   
-            o.write(str(i+1)+","+str(y))
+        z1 = sigmoid(np.dot(test, W[0]))
+        y = activate(z1, 0.5)
+        for i in range(len(test)):   
+            o.write(str(i+1)+","+str(y[i]))
             o.write("\n")
     print("Testing result stored in %s" % outfilepath)
      
@@ -64,10 +77,11 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
     labels = pd.read_csv(ytrain, header=None)
     
     # Model initialization
-    W = np.zeros((107,))    
-
+    W = []
+    W.append(np.zeros((107,)))    
+    
     # Training
-    W_trained = logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-3)
+    W_trained = logi_train(W, train_data, labels, batch_size=10, epoch=1000, lamb=1e-3)
     
     # Save model
     with open("./model/W_logistic_X.pkl", "wb") as o:
