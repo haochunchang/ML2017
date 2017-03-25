@@ -9,6 +9,10 @@ def activate(x):
         return 0
     else:
         return 1
+def v_activate(x):
+    sigmoid = 1.0 / (1.0+np.exp(-x))
+    return (sigmoid < 0.5).astype(np.int)
+
 
 def generative_W(train_data, labels):
     
@@ -37,7 +41,10 @@ def generative_W(train_data, labels):
     # Construct W from maximum likelihood 
     w = np.dot((mu1-mu2), cov_inv)
     b = (np.dot(np.dot(mu2.T, cov_inv), mu2) - np.dot(np.dot(mu1.T, cov_inv), mu1)) / 2 + np.log(n1/n2)
-    
+   
+    train_x, train_y = train.sample(len(train))
+    err = np.absolute(v_activate(np.dot(train_x, w) + b) - train_y).sum()
+    print('Training accuracy: %f' %(1 - err / len(train)))
     return w, b 
     
 def generate_test(W, b, xtest, outfilepath):
