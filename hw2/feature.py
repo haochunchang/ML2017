@@ -31,7 +31,7 @@ class Xfeature(object):
         self.__label = np.array(self.__label).flatten()
         return self     
 
-    def __hash(self, vector):
+    def __hash(self, vector, nbin):
         '''
         Input a vector of continuous feature
         Convert it to binned number.
@@ -39,9 +39,21 @@ class Xfeature(object):
         '''
         vmax = int(vector.max())
         vmin = int(vector[vector > 0].min())
-        bin_size = (vmax - vmin) // 10
-        
+        bin_size = (vmax - vmin) // nbin
+                
         for i in range(len(vector)):
+            if vector[i] < vmin:
+                vector[i] = 1
+                continue
+            elif vector[i] > vmin+bin_size*(nbin-1):
+                vector[i] = nbin
+                continue
+            for j in range(1, nbin):
+                low = vmin+bin_size*(j-1)
+                high = vmin+bin_size*j
+                if low <= vector[i] and vector[i] < high:
+                    vector[i] = j                
+            '''
             if vector[i] < vmin+bin_size:
                 vector[i] = 1
             elif (vector[i] >= vmin+bin_size and vector[i] < vmin+bin_size*2):
@@ -62,17 +74,17 @@ class Xfeature(object):
                 vector[i] = 9
             else:
                 vector[i] = 10
-
+            '''
         return vector
 
 
-    def bucketize(self):
+    def bucketize(self, nbin):
         '''
         Bucketize continuous feature into catergorical feature.
         Hash each bucket
         '''
         for i in [0, 1, 3, 4, 5]:
-            self.__data[:, i] = self.__hash(self.__data[:, i])
+            self.__data[:, i] = self.__hash(self.__data[:, i], nbin)
 
         return self
 
