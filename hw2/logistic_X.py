@@ -19,7 +19,7 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     train = feature.Xfeature(train_data, labels).preprocess()
     
     # Normalization
-    train = train.bucketize()
+    train = train.bucketize(20)
     train.add_bias()  
 
     nbatch = len(train) // batch_size + 1
@@ -56,7 +56,7 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.bucketize()
+    test = test.bucketize(20)
     test.add_bias()
 
     with open(outfilepath, 'w') as o:
