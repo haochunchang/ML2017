@@ -19,7 +19,10 @@ class Xfeature(object):
    
     def get_label(self, index):
         return self.__label[index]
-     
+    
+    def get(self):
+        return self.__data, self.__label        
+ 
     def preprocess(self):
         '''
         Convert pandas dataframe into numpy array.
@@ -36,20 +39,29 @@ class Xfeature(object):
         '''
         vmax = int(vector.max())
         vmin = int(vector[vector > 0].min())
-        bin_size = (vmax - vmin) // 5
-        nbin = 5
+        bin_size = (vmax - vmin) // 10
         
         for i in range(len(vector)):
             if vector[i] < vmin+bin_size:
                 vector[i] = 1
             elif (vector[i] >= vmin+bin_size and vector[i] < vmin+bin_size*2):
                 vector[i] = 2
-            elif vmin+bin_size <= vector[i] and vector[i]< vmin+bin_size*3:
+            elif vmin+bin_size*2 <= vector[i] and vector[i]< vmin+bin_size*3:
                 vector[i] = 3
-            elif vmin+bin_size <= vector[i] and vector[i]< vmin+bin_size*4:
+            elif vmin+bin_size*3 <= vector[i] and vector[i]< vmin+bin_size*4:
                 vector[i] = 4
-            else:
+            elif vmin+bin_size*4 <= vector[i] and vector[i]< vmin+bin_size*5:
                 vector[i] = 5
+            elif vmin+bin_size*5 <= vector[i] and vector[i]< vmin+bin_size*6:
+                vector[i] = 6
+            elif vmin+bin_size*6 <= vector[i] and vector[i]< vmin+bin_size*7:
+                vector[i] = 7
+            elif vmin+bin_size*7 <= vector[i] and vector[i]< vmin+bin_size*8:
+                vector[i] = 8
+            elif vmin+bin_size*8 <= vector[i] and vector[i]< vmin+bin_size*9:
+                vector[i] = 9
+            else:
+                vector[i] = 10
 
         return vector
 
