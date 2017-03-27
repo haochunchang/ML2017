@@ -26,22 +26,20 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     pre_grad1, pre_grad2 = (0, 0)
     for i in range(1, epoch+1):
         err = 0
-        for j in range(nbatch):
+        for j in range(nbatch):           
             
             batch_x, batch_y = train.sample(batch_size)
-            z = sigmoid(np.dot(batch_x, W[0])) #h (batch_size, 54)
+            z = sigmoid(np.dot(batch_x, W[0])) 
             y_hat = activate(z, 0.5)
 
             # L = cross entropy
-            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + lamb * W[0] / batch_size
-
+            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + 2 * lamb * W[0] / batch_size
+            
             # Record previous gradients
             pre_grad1 += grad1 ** 2
-            #pre_grad2 += grad2 ** 2
             
             # Update parameters
             W[0] -= (lr / np.sqrt(pre_grad1+1e-8)) * grad1
-            #W[1] -= (lr / np.sqrt(pre_grad2+1e-8)) * grad2
 
             # total number of misclassification
             loss = np.absolute(batch_y - y_hat).sum()
@@ -79,9 +77,9 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
     # Model initialization
     W = []
     W.append(np.zeros((107,)))    
-    
+ 
     # Training
-    W_trained = logi_train(W, train_data, labels, batch_size=10, epoch=1000, lamb=1e-3)
+    W_trained = logi_train(W, train_data, labels, batch_size=30, epoch=2000, lr=1e-1, lamb=1e-4)
     
     # Save model
     with open("./model/W_logistic_X.pkl", "wb") as o:

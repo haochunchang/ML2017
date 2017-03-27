@@ -9,17 +9,17 @@ def activate(x):
         return 0
     else:
         return 1
+
 def v_activate(x):
     sigmoid = 1.0 / (1.0+np.exp(-x))
     return (sigmoid < 0.5).astype(np.int)
-
 
 def generative_W(train_data, labels):
     
     train = feature.Xfeature(train_data, labels).preprocess()
     
     # Normalization
-    train = train.normalize()
+    train = train.bucketize()
 
     # Maximize Likelihood
     x_class1 = np.array([train[i] for i in range(len(train)) if train.get_label(i) == 0])
@@ -54,7 +54,7 @@ def generate_test(W, b, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.normalize()
+    test = test.bucketize()
 
     with open(outfilepath, 'w') as o:
         o.write("id,label\n")
