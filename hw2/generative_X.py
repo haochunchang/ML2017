@@ -19,7 +19,7 @@ def generative_W(train_data, labels):
     train = feature.Xfeature(train_data, labels).preprocess()
     
     # Normalization
-    train = train.bucketize()
+    train = train.bucketize(15)
 
     # Maximize Likelihood
     x_class1 = np.array([train[i] for i in range(len(train)) if train.get_label(i) == 0])
@@ -54,7 +54,7 @@ def generate_test(W, b, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.bucketize()
+    test = test.bucketize(15)
 
     with open(outfilepath, 'w') as o:
         o.write("id,label\n")
