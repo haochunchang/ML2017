@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class Xfeature(object):
     '''
@@ -53,30 +54,20 @@ class Xfeature(object):
                 high = vmin+bin_size*j
                 if low <= vector[i] and vector[i] < high:
                     vector[i] = j                
-            '''
-            if vector[i] < vmin+bin_size:
-                vector[i] = 1
-            elif (vector[i] >= vmin+bin_size and vector[i] < vmin+bin_size*2):
-                vector[i] = 2
-            elif vmin+bin_size*2 <= vector[i] and vector[i]< vmin+bin_size*3:
-                vector[i] = 3
-            elif vmin+bin_size*3 <= vector[i] and vector[i]< vmin+bin_size*4:
-                vector[i] = 4
-            elif vmin+bin_size*4 <= vector[i] and vector[i]< vmin+bin_size*5:
-                vector[i] = 5
-            elif vmin+bin_size*5 <= vector[i] and vector[i]< vmin+bin_size*6:
-                vector[i] = 6
-            elif vmin+bin_size*6 <= vector[i] and vector[i]< vmin+bin_size*7:
-                vector[i] = 7
-            elif vmin+bin_size*7 <= vector[i] and vector[i]< vmin+bin_size*8:
-                vector[i] = 8
-            elif vmin+bin_size*8 <= vector[i] and vector[i]< vmin+bin_size*9:
-                vector[i] = 9
-            else:
-                vector[i] = 10
-            '''
         return vector
-
+    
+    def sample_val(self, size):
+        '''
+        Random sample validation set of given size from self.
+        '''
+        seed = random.sample(range(self.__data.shape[0]), size)
+        not_seed = [i for i in range(self.__data.shape[0]) if i not in seed]
+        
+        val_f = np.array([self.__data[i, :] for i in seed])
+        val_l = np.array([self.__label[i] for i in seed])
+        self.__data = np.array([self.__data[i, :] for i in not_seed])
+        self.__label = np.array([self.__label[i] for i in not_seed])
+        return val_f, val_l
 
     def bucketize(self, nbin):
         '''
