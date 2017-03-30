@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import sys, pickle
-import feature
+import feature, math
+import matplotlib.pyplot as plt
 
 def activate(x, threshold):
     return (x >= threshold).astype(np.int)
@@ -22,8 +23,13 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     train = train.bucketize(20)
     train.add_bias()  
 
+    #---Sample 1/10 training data as Validation data---
+    #val_f, val_l = train.sample_val(len(train) // 10)
+    #--------------------------------------------------
+
     nbatch = len(train) // batch_size + 1
     pre_grad1, pre_grad2 = (0, 0)
+    rho = 0
     for i in range(1, epoch+1):
         err = 0
         for j in range(nbatch):           
@@ -33,10 +39,10 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             y_hat = activate(z, 0.5)
 
             # L = cross entropy
-            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + 2 * lamb * W[0] / batch_size
+            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + lamb * np.sign(W[0]) / batch_size
             
             # Record previous gradients
-            pre_grad1 += grad1 ** 2
+            pre_grad1 += rho * pre_grad1 + (1 - rho) * (grad1 ** 2)
             
             # Update parameters
             W[0] -= (lr / np.sqrt(pre_grad1+1e-8)) * grad1
@@ -46,8 +52,14 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             err += loss
         if i % 100 == 0:
             print('Training accuracy after %d epoch: %f' %(i, 1 - err / len(train)))
-
-    return W 
+    
+    #---Validation---------------------------------
+    #y_hat = activate(sigmoid(np.dot(val_f, W[0])),0.5)
+    #val_loss = np.absolute(val_l - y_hat).sum() / val_f.shape[0]
+    #print('Validation accuracy: %f' %(1 - val_loss)) 
+    #----------------------------------------------    
+    
+    return W#, val_loss 
 
 def logi_test(W, xtest, outfilepath):
     
@@ -79,18 +91,32 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
     W.append(np.zeros((107,)))    
  
     # Training
-    W_trained = logi_train(W, train_data, labels, batch_size=30, epoch=2000, lr=1e-1, lamb=1e-4)
-    
+    #lamb, loss = [], []
+    #best_val = 1e8
+    #for l in [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]: 
+    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=2000, lr=1e-1, lamb=1e-4)
+    #    lamb.append(math.log10(l))
+    #    loss.append(val_loss)    
+    #    if val_loss < best_val:
+    #        W_best = W_trained
+    #        best_val = val_loss
+
+    # Plot
+    #plt.scatter(lamb, loss)
+    #plt.show()
+    #plt.close()
+
+    W_best = W_trained
     # Save model
     with open("./model/W_logistic_X.pkl", "wb") as o:
-        pickle.dump(W_trained, o)
+        pickle.dump(W_best, o)
     with open("./model/W_logistic_X.csv", "w") as o:
-        for W in W_trained:
+        for W in W_best:
             o.write(str(W))
             o.write("\n")
        
     # Testing and output prediction file
-    logi_test(W_trained, xtest, outfilepath)
+    logi_test(W_best, xtest, outfilepath)
 
 if __name__ == "__main__":
     xtrain = sys.argv[1]
