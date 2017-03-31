@@ -79,11 +79,24 @@ class Xfeature(object):
 
         return self
 
+    def cross(self, i, j):
+        self.__data = np.insert(self.__data, self.__data.shape[1]-1, self.__data[:, i] * self.__data[:, j], axis=1)
+        return self
+
+    def delete(self, lst):
+        new = np.delete(self.__data, lst, axis=1)
+        self.__data = new
+        return self
+
     def normalize(self):
-        fmax = (self.__data).max(axis=0)
-        for i in range(len(fmax)):
-            if fmax[i] != 0:
-                self.__data[:,i] = self.__data[:,i] / fmax[i]
+        '''
+        Standardization of continuous features.
+        '''
+        mu = (self.__data).mean(axis=0)
+        std = self.__data.std(axis=0)
+        for i in [0, 1, 3, 4, 5, self.__data.shape[1]-1]:
+            if std[i] != 0:
+                self.__data[:,i] = self.__data[:,i] - mu[i] / std[i]
         return self
   
     def add_bias(self):
