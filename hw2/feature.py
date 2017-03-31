@@ -8,6 +8,7 @@ class Xfeature(object):
     def __init__(self, train_x, train_y):
         self.__data = train_x
         self.__label = train_y
+        self.pre_seed = []
 
     def __len__(self):
         '''
@@ -74,7 +75,7 @@ class Xfeature(object):
         Bucketize continuous feature into catergorical feature.
         Hash each bucket
         '''
-        for i in [0, 1, 3, 4, 5]:
+        for i in [0, 1, 3, 4, 5, self.__data.shape[1]-1]:
             self.__data[:, i] = self.__hash(self.__data[:, i], nbin)
 
         return self
@@ -120,12 +121,13 @@ class Xfeature(object):
         '''
         Randomly sample without replacement.
         ''' 
-        pre_seed = []
-        seed = [i for i in np.random.randint(0, self.__data.shape[0], size=size) if i not in pre_seed]
+        
+        seed = [i for i in np.random.randint(0, self.__data.shape[0], size=size) if i not in self.pre_seed]
         batch_x = self.__data[seed, :]
         batch_y = self.__label[seed]
-        
+               
+        # Record sampled data           
         for s in seed:
-            pre_seed.append(s)       
+            self.pre_seed.append(s)       
  
         return batch_x, batch_y
