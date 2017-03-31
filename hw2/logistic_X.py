@@ -9,7 +9,7 @@ def activate(x, threshold):
 
 def sigmoid(x):
     sigmoid = 1.0 / (1.0+np.exp(-x))
-    return sigmoid
+    return np.clip(sigmoid, 0.000000001, 0.999999999)
 
 def dsigmoid(x):
     ds = np.exp(-x) / ((1.0+np.exp(-x)) ** 2)
@@ -19,7 +19,11 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     
     train = feature.Xfeature(train_data, labels).preprocess()
     
-    # Normalization
+    # Normalization 
+    for i in range(38, 52): # occupation: 38~51
+        for j in range(15, 31):
+            train = train.cross(i, j)
+    train = train.delete([14, 52, 105])
     train = train.bucketize(20)
     train.add_bias()  
 
@@ -32,9 +36,11 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     rho = 0
     for i in range(1, epoch+1):
         err = 0
+        train.pre_seed = []
         for j in range(nbatch):           
-            
             batch_x, batch_y = train.sample(batch_size)
+            #batch_x, batch_y = train.get()
+ 
             z = sigmoid(np.dot(batch_x, W[0])) 
             y_hat = activate(z, 0.5)
 
@@ -50,9 +56,11 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             # total number of misclassification
             loss = np.absolute(batch_y - y_hat).sum()
             err += loss
-        if i % 100 == 0:
+             
+        if i % 1 == 0:
             print('Training accuracy after %d epoch: %f' %(i, 1 - err / len(train)))
-    
+              
+ 
     #---Validation---------------------------------
     #y_hat = activate(sigmoid(np.dot(val_f, W[0])),0.5)
     #val_loss = np.absolute(val_l - y_hat).sum() / val_f.shape[0]
@@ -68,6 +76,11 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
+    #test = test.cross(9, 24)
+    for i in range(38, 52):
+        for j in range(15, 31):
+            test = test.cross(i, j)
+    test = test.delete([14, 52, 105])
     test = test.bucketize(20)
     test.add_bias()
 
@@ -86,20 +99,21 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
     train_data = pd.read_csv(xtrain)
     labels = pd.read_csv(ytrain, header=None)
     
-    # Model initialization
-    W = []
-    W.append(np.zeros((107,)))    
- 
     # Training
     #lamb, loss = [], []
     #best_val = 1e8
     #for l in [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]: 
-    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=2000, lr=1e-1, lamb=1e-4)
-    #    lamb.append(math.log10(l))
-    #    loss.append(val_loss)    
-    #    if val_loss < best_val:
-    #        W_best = W_trained
-    #        best_val = val_loss
+        
+    # Model initialization
+    W = []
+    W.append(np.zeros((105+223,)))    
+
+    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=20, lr=1e-1, lamb=1e-4)
+       # lamb.append(math.log10(l))
+       # loss.append(val_loss)    
+       # if val_loss < best_val:
+       #     W_best = W_trained
+       #     best_val = val_loss
 
     # Plot
     #plt.scatter(lamb, loss)
@@ -108,9 +122,9 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
 
     W_best = W_trained
     # Save model
-    with open("./model/W_logistic_X.pkl", "wb") as o:
+    with open("./model/W_logistic_single.pkl", "wb") as o:
         pickle.dump(W_best, o)
-    with open("./model/W_logistic_X.csv", "w") as o:
+    with open("./model/W_logistic_single.csv", "w") as o:
         for W in W_best:
             o.write(str(W))
             o.write("\n")
