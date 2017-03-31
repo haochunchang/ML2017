@@ -40,7 +40,7 @@ def generative_W(train_data, labels):
     cov1 = (np.dot(delta1.T, delta1)) / n1
     cov2 = (np.dot(delta2.T, delta2)) / n2
     cov = (n1 / len(train)) * cov1 + (n2 / len(train)) * cov2
-    cov_inv = np.linalg.inv(cov)
+    cov_inv = np.linalg.pinv(cov)
     
     # Construct W from maximum likelihood 
     w = np.dot((mu1-mu2), cov_inv)
