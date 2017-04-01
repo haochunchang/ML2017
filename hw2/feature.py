@@ -8,7 +8,7 @@ class Xfeature(object):
     def __init__(self, train_x, train_y):
         self.__data = train_x
         self.__label = train_y
-        self.pre_seed = []
+        self.sample_times = 0
 
     def __len__(self):
         '''
@@ -121,12 +121,11 @@ class Xfeature(object):
         '''
         Randomly sample without replacement.
         ''' 
-        seed = [i for i in np.random.randint(0, self.__data.shape[0], size=size) if i not in self.pre_seed]
+        seed = [i for i in range(self.sample_times*size, (self.sample_times+1)*size)]
         batch_x = self.__data[seed, :]
         batch_y = self.__label[seed]
                
-        # Record sampled data           
-        for s in seed:
-            self.pre_seed.append(s)       
+        # Record sampled time          
+        self.sample_times += 1       
  
         return batch_x, batch_y
