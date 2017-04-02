@@ -20,9 +20,6 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     train = feature.Xfeature(train_data, labels).preprocess()
     
     # Normalization 
-    for i in range(38, 52): # occupation: 38~51
-        for j in range(15, 31):
-            train = train.cross(i, j)
     train = train.delete([14, 52, 105])
     train = train.bucketize(20)
     train.add_bias()  
@@ -76,10 +73,6 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    #test = test.cross(9, 24)
-    for i in range(38, 52):
-        for j in range(15, 31):
-            test = test.cross(i, j)
     test = test.delete([14, 52, 105])
     test = test.bucketize(20)
     test.add_bias()
@@ -106,7 +99,7 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
         
     # Model initialization
     W = []
-    W.append(np.zeros((105+223,)))    
+    W.append(np.zeros((105,)))    
 
     W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=2000, lr=1e-1, lamb=1e-3)
        # lamb.append(math.log10(l))
