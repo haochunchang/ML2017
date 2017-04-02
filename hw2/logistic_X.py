@@ -9,7 +9,7 @@ def activate(x, threshold):
 
 def sigmoid(x):
     sigmoid = 1.0 / (1.0+np.exp(-x))
-    return np.clip(sigmoid, 0.000000001, 0.999999999)
+    return np.clip(sigmoid, 0.000000000001, 0.999999999999)
 
 def dsigmoid(x):
     ds = np.exp(-x) / ((1.0+np.exp(-x)) ** 2)
@@ -31,12 +31,12 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     #val_f, val_l = train.sample_val(len(train) // 10)
     #--------------------------------------------------
 
-    nbatch = len(train) // batch_size + 1
+    nbatch = len(train) // batch_size
     pre_grad1, pre_grad2 = (0, 0)
-    rho = 0
     for i in range(1, epoch+1):
         err = 0
-        train.pre_seed = []
+        train.sample_times = 0
+        train = train.shuffle()
         for j in range(nbatch):           
             batch_x, batch_y = train.sample(batch_size)
             #batch_x, batch_y = train.get()
@@ -48,7 +48,7 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + lamb * np.sign(W[0]) / batch_size
             
             # Record previous gradients
-            pre_grad1 += rho * pre_grad1 + (1 - rho) * (grad1 ** 2)
+            pre_grad1 += grad1 ** 2
             
             # Update parameters
             W[0] -= (lr / np.sqrt(pre_grad1+1e-8)) * grad1
@@ -57,7 +57,7 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             loss = np.absolute(batch_y - y_hat).sum()
             err += loss
              
-        if i % 1 == 0:
+        if i % 10 == 0:
             print('Training accuracy after %d epoch: %f' %(i, 1 - err / len(train)))
               
  
@@ -108,7 +108,7 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
     W = []
     W.append(np.zeros((105+223,)))    
 
-    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=20, lr=1e-1, lamb=1e-4)
+    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=2000, lr=1e-1, lamb=1e-3)
        # lamb.append(math.log10(l))
        # loss.append(val_loss)    
        # if val_loss < best_val:
@@ -122,9 +122,9 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
 
     W_best = W_trained
     # Save model
-    with open("./model/W_logistic_single.pkl", "wb") as o:
+    with open("./model/W_logistic_X.pkl", "wb") as o:
         pickle.dump(W_best, o)
-    with open("./model/W_logistic_single.csv", "w") as o:
+    with open("./model/W_logistic_X.csv", "w") as o:
         for W in W_best:
             o.write(str(W))
             o.write("\n")
