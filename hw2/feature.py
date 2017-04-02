@@ -70,13 +70,12 @@ class Xfeature(object):
         self.__label = np.array([self.__label[i] for i in not_seed])
         return val_f, val_l
 
-    def bucketize(self, nbin):
+    def bucketize(self, index, nbin):
         '''
         Bucketize continuous feature into catergorical feature.
         Hash each bucket
         '''
-        for i in [0, 1, 3, 4, 5]:
-            self.__data[:, i] = self.__hash(self.__data[:, i], nbin)
+        self.__data[:, i] = self.__hash(self.__data[:, index], nbin)
 
         return self
 
