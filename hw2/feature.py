@@ -76,7 +76,6 @@ class Xfeature(object):
         Hash each bucket
         '''
         self.__data[:, index] = self.__hash(self.__data[:, index], nbin)
-
         return self
 
     def cross(self, i, j):
@@ -96,7 +95,7 @@ class Xfeature(object):
         std = self.__data.std(axis=0)
         for i in [0, 1, 3, 4, 5]:
             if std[i] != 0:
-                self.__data[:,i] = self.__data[:,i] - mu[i] / std[i]
+                self.__data[:,i] = (self.__data[:,i] - mu[i]) / std[i]
         return self
   
     def add_bias(self):
