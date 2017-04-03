@@ -23,7 +23,8 @@ def generative_W(train_data, labels):
         for j in range(15, 31):
             train = train.cross(i, j)
     train = train.delete([14, 52, 105])
-    train = train.bucketize(20)
+    for i in [0, 1, 3, 4, 5]:
+        train = train.bucketize(i, 20)
 
     # Maximize Likelihood
     x_class1 = np.array([train[i] for i in range(len(train)) if train.get_label(i) == 0])
