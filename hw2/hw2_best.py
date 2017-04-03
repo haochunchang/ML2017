@@ -17,7 +17,11 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.bucketize(20)
+    test = test.bucketize(0, 20)
+    test = test.bucketize(1, 20)
+    test = test.bucketize(3, 20)
+    test = test.bucketize(4, 20)
+    test = test.bucketize(5, 20)
     test.add_bias()
 
     with open(outfilepath, 'w') as o:
