@@ -19,9 +19,12 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
     
     train = feature.Xfeature(train_data, labels).preprocess()
     
-    # Normalization 
-    train = train.delete([14, 52, 105])
-    train = train.bucketize(20)
+    # Bucketization of continuous attributes to different number of bins.
+    train = train.bucketize(0, 20)
+    train = train.bucketize(1, 20)
+    train = train.bucketize(3, 20)
+    train = train.bucketize(4, 20)
+    train = train.bucketize(5, 20)
     train.add_bias()  
 
     #---Sample 1/10 training data as Validation data---
@@ -42,7 +45,7 @@ def logi_train(W, train_data, labels, epoch=1000, batch_size=20, lr=1e-1, lamb=1
             y_hat = activate(z, 0.5)
 
             # L = cross entropy
-            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) / batch_size + lamb * np.sign(W[0]) / batch_size
+            grad1 = (-1) * np.dot(batch_x.T, (batch_y - z)) + lamb * np.sign(W[0])
             
             # Record previous gradients
             pre_grad1 += grad1 ** 2
@@ -73,8 +76,11 @@ def logi_test(W, xtest, outfilepath):
     test = feature.Xfeature(test_data, None).preprocess()
     
     # Normalization
-    test = test.delete([14, 52, 105])
-    test = test.bucketize(20)
+    test = test.bucketize(0, 20)
+    test = test.bucketize(1, 20)
+    test = test.bucketize(3, 20)
+    test = test.bucketize(4, 20)
+    test = test.bucketize(5, 20)
     test.add_bias()
 
     with open(outfilepath, 'w') as o:
@@ -99,9 +105,9 @@ def logi_main(xtrain, ytrain, xtest, outfilepath):
         
     # Model initialization
     W = []
-    W.append(np.zeros((105,)))    
+    W.append(np.zeros((107,)))    
 
-    W_trained = logi_train(W, train_data, labels, batch_size=20, epoch=2000, lr=1e-1, lamb=1e-3)
+    W_trained = logi_train(W, train_data, labels, batch_size=10, epoch=1000, lr=1e-1, lamb=1e-4)
        # lamb.append(math.log10(l))
        # loss.append(val_loss)    
        # if val_loss < best_val:
