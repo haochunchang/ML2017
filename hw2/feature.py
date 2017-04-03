@@ -75,7 +75,7 @@ class Xfeature(object):
         Bucketize continuous feature into catergorical feature.
         Hash each bucket
         '''
-        self.__data[:, i] = self.__hash(self.__data[:, index], nbin)
+        self.__data[:, index] = self.__hash(self.__data[:, index], nbin)
 
         return self
 
