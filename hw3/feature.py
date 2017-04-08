@@ -26,7 +26,7 @@ class feature(object):
         '''
         Normalize feature by dividing by 255
         '''
-        self.__data = self.__data.astype('float32') / 255.0
+        self.__data = (self.__data).astype('float32') / 255.0
         return self
 
     def sample_val(self, size):
@@ -55,7 +55,7 @@ class feature(object):
         return self.__label
 
  
-class testfeature(feature):
+class testfeature(object):
     
     def __init__(self, filepath):
         self.__data = []
@@ -75,6 +75,18 @@ class testfeature(feature):
         self.__label = np.reshape(self.__label, (len(self.__label), 1))
         return self
     
-    
+    def normalize(self):
+        self.__data = (self.__data).astype('float32') / 255.0
+        return self
 
- 
+    def __getitem__(self, index):
+        return self.__data[index, ]
+    
+    def __len__(self):
+        return self.__data.shape[0]
+    
+    def get_feature(self):
+        return self.__data
+    
+    def get_label(self):
+        return self.__label
