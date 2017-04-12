@@ -31,21 +31,32 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
  
     # Define CNN model
     cnn = Sequential()
-    cnn.add(Conv2D(64, 3, input_shape=(48,48,1), padding='valid'))
+    cnn.add(Conv2D(32, 3, input_shape=(48,48,1), padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
+    cnn.add(Conv2D(32, 3, input_shape=(48,48,1), padding='valid'))
+    cnn.add(LeakyReLU(alpha=.001))
+    cnn.add(BatchNormalization()) 
     cnn.add(MaxPooling2D(2, strides=2)) 
     cnn.add(Dropout(0.25))
 
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(128, 3, padding='valid'))
+    cnn.add(Conv2D(64, 3, padding='valid'))
+    cnn.add(LeakyReLU(alpha=.001))
+    cnn.add(BatchNormalization())
+    cnn.add(ZeroPadding2D((1,1)))
+    cnn.add(Conv2D(64, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
     cnn.add(MaxPooling2D(2, strides=2)) 
     cnn.add(Dropout(0.25)) 
 
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(256, 3, padding='valid'))
+    cnn.add(Conv2D(128, 3, padding='valid'))
+    cnn.add(LeakyReLU(alpha=.001))
+    cnn.add(BatchNormalization())
+    cnn.add(ZeroPadding2D((1,1)))
+    cnn.add(Conv2D(128, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
     cnn.add(MaxPooling2D(2, strides=2)) 
@@ -76,7 +87,7 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     # Train model
     if not data_augmentation:
         print('Not using data augmentation.')
-        checkpointer = ModelCheckpoint(filepath="./checkpoints/weights.{epoch:02d}-{val_loss:.2f}.h5", verbose=1, save_best_only=True) 
+        checkpointer = ModelCheckpoint(filepath="./checkpoints/weights.{epoch:02d}-{val_acc:.2f}.h5", verbose=1, save_best_only=True, monitor='val_acc') 
         cnn.fit(x_train, y_train,
                 batch_size=batch_size,
                 epochs=epochs,
