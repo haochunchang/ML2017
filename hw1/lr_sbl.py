@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import sys, random, pickle
 import feature
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 '''
 def test_lr(W, test, outfilepath, train):
