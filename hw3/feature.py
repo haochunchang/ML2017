@@ -40,7 +40,14 @@ class feature(object):
         self.__data = np.delete(self.__data, seed, axis=0)
         self.__label = np.delete(self.__label, seed, axis=0)
     
-        return val_f, val_l
+        return val_f, val_l, seed
+
+    def delete(self, target_x, target_y):
+        seed = list(np.where(np.all(self.__data == target_x, axis=0))[0])
+        self.__data = np.delete(self.__data, seed, axis=0)
+        self.__label = np.delete(self.__label, seed, axis=0)
+        
+        return self
 
     def __getitem__(self, index):
         return self.__data[index, ]
