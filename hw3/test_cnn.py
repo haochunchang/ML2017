@@ -12,10 +12,10 @@ def nn_test(test_filepath, outfilepath):
     test_norm = test.normalize()
 
     # Loading in trained model 
-    with open("models/cnn_model.json", "r") as json_file:
+    with open("models/cnn_sbl.json", "r") as json_file:
         cnn = model_from_json(json_file.read())
-    cnn.load_weights('models/cnn_50.h5')
- 
+    cnn.load_weights('models/cnn_sbl.h5')
+
     # Predict
     with open(outfilepath, 'w') as o:
         o.write("id,label\n") 
