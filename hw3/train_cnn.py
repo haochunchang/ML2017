@@ -1,5 +1,5 @@
 import numpy as np
-import sys, csv
+import sys, csv, pickle
 import feature
 from PIL import Image
 
@@ -24,41 +24,49 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     train_norm = train.normalize()
     
     # convert class vectors to binary class matrices
-    x_test, y_test = train_norm.sample_val(3000)
+    #x_test, y_test, seed = train_norm.sample_val(3000)
+    #with open('validation_data_augmented.pkl', 'wb') as v:
+    #    pickle.dump((x_test, y_test, seed), v)
+    
+    with open('validation_data.pkl', 'rb') as v:
+        x_test, y_test = pickle.load(v)
+
+    train_norm = train_norm.delete(x_test, y_test)
     x_train = train_norm.get_feature()
     y_train = keras.utils.to_categorical(train_norm.get_label(), num_classes) 
     y_test = keras.utils.to_categorical(y_test, num_classes)
  
     # Define CNN model
     cnn = Sequential()
-    cnn.add(Conv2D(32, 3, input_shape=(48,48,1), padding='valid'))
+    cnn.add(Conv2D(64, 3, input_shape=(48,48,1), padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
-    cnn.add(Conv2D(32, 3, input_shape=(48,48,1), padding='valid'))
+    cnn.add(ZeroPadding2D((1,1)))
+    cnn.add(Conv2D(64, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
-    cnn.add(BatchNormalization()) 
+    cnn.add(BatchNormalization())
     cnn.add(MaxPooling2D(2, strides=2)) 
     cnn.add(Dropout(0.25))
 
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(64, 3, padding='valid'))
+    cnn.add(Conv2D(128, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(64, 3, padding='valid'))
+    cnn.add(Conv2D(128, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
-    cnn.add(BatchNormalization())
+    cnn.add(BatchNormalization()) 
     cnn.add(MaxPooling2D(2, strides=2)) 
     cnn.add(Dropout(0.25)) 
 
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(128, 3, padding='valid'))
+    cnn.add(Conv2D(256, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
     cnn.add(BatchNormalization())
     cnn.add(ZeroPadding2D((1,1)))
-    cnn.add(Conv2D(128, 3, padding='valid'))
+    cnn.add(Conv2D(256, 3, padding='valid'))
     cnn.add(LeakyReLU(alpha=.001))
-    cnn.add(BatchNormalization())
+    cnn.add(BatchNormalization()) 
     cnn.add(MaxPooling2D(2, strides=2)) 
     cnn.add(Dropout(0.25)) 
     
@@ -79,7 +87,11 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
                 optimizer='Adam',
                 metrics=['accuracy'])
     print(cnn.summary())
-    
+   
+    model_json = cnn.to_json()
+    with open("models/cnn_model.json", "w") as json_file:
+        json_file.write(model_json)
+ 
     if pretrained != None:
         cnn.load_weights(pretrained)
         print('Continue Training.')    
@@ -97,6 +109,7 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
                 callbacks=[TensorBoard(log_dir='./log/events.epochs'+str(epochs)), checkpointer])
     else:
         print('Using real-time data augmentation.')
+        checkpointer = ModelCheckpoint(filepath="./checkpoints/weights.{epoch:02d}-{val_acc:.2f}.h5", verbose=1, save_best_only=True, monitor='val_acc')  
         datagen = ImageDataGenerator(
             featurewise_center=False,  # set input mean to 0 over the dataset
             samplewise_center=False,  # set each sample mean to 0
@@ -112,28 +125,24 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
         datagen.fit(x_train)
         cnn.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
                           steps_per_epoch=x_train.shape[0] // batch_size,
-                          epochs=epochs, validation_data=(x_test, y_test), 
-                          callbacks=[TensorBoard(log_dir='./log/events.epochs'+str(epochs)+'augmented')])
+                          epochs=epochs, validation_data=(x_test, y_test),
+                          initial_epoch=29, 
+                          callbacks=[TensorBoard(log_dir='./log/events.epochs'+str(epochs)+'augmented'), checkpointer])
 
     return cnn
 
 def save_model(cnn, epochs):
         
     # Serialize model weights and save them
-    model_json = cnn.to_json()
-    with open("models/cnn_model.json", "w") as json_file:
-        json_file.write(model_json)
-    #cnn.save_weights('models/cnn_'+str(epochs)+'_augmented.h5')
     cnn.save_weights('models/cnn_'+str(epochs)+'.h5')
     print("CNN model saved.") 
 
-
 def cnn_main(train_filepath):
     
-    #model_filepath = 'models/cnn_50.h5'
-    model_filepath = None
-    epochs = 50 
-    cnn = cnn_train(train_filepath, batch_size=128, epochs=epochs, data_augmentation=False, pretrained=model_filepath)    
+    model_filepath = 'checkpoints/weights.29-0.75.h5'
+    #model_filepath = None
+    epochs = 80 
+    cnn = cnn_train(train_filepath, batch_size=128, epochs=epochs, data_augmentation=True, pretrained=model_filepath)    
     save_model(cnn, epochs)
 
 if __name__ == "__main__":
