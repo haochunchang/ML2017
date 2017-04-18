@@ -31,7 +31,7 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     with open('validation_data.pkl', 'rb') as v:
         x_test, y_test = pickle.load(v)
 
-    train_norm = train_norm.delete(x_test, y_test)
+    train_norm = train_norm.delete(x_test, y_test) # Do not cancel out validation set!
     x_train = train_norm.get_feature()
     y_train = keras.utils.to_categorical(train_norm.get_label(), num_classes) 
     y_test = keras.utils.to_categorical(y_test, num_classes)
