@@ -42,8 +42,7 @@ class feature(object):
     
         return val_f, val_l, seed
 
-    def delete(self, target_x, target_y):
-        seed = list(np.where(np.all(self.__data == target_x, axis=0))[0]) # seed do not have anything!!
+    def delete(self, seed):
         self.__data = np.delete(self.__data, seed, axis=0)
         self.__label = np.delete(self.__label, seed, axis=0)
         
