@@ -14,7 +14,6 @@ def nn_test(test_filepath, outfilepath):
     with open("models/cnn_sbl.json", "r") as json_file:
         cnn = model_from_json(json_file.read())
     cnn.load_weights('models/cnn_sbl.h5')
-    #cnn.load_weights('checkpoints/weights.92-0.70.h5')
 
     # Predict
     with open(outfilepath, 'w') as o:
