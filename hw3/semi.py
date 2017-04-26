@@ -129,6 +129,5 @@ def semi_train(train_filepath, batch_size=64, epochs=80):
     cnn.save_weights('models/semi_'+str(epochs)+'.h5')
     print("semi-CNN model saved.") 
 
-
 if __name__ == "__main__":
     semi_train(sys.argv[1]) 

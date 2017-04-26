@@ -19,7 +19,7 @@ def main():
     private_pixels = [ x_test[i].reshape(1, 48, 48, 1) for i in range(len(x_test)) ]
     
     input_img = emotion_classifier.input
-    img_ids = [21, 647, 888, 2846, 2999]
+    img_ids = [i for i in range(5)]
 
     for idx in img_ids:
         val_proba = emotion_classifier.predict(private_pixels[idx])
@@ -40,7 +40,7 @@ def main():
         plt.tight_layout()
         fig = plt.gcf()
         plt.draw()
-        fig.savefig(os.path.join(ori_dir, '{}.png'.format(idx)), dpi=100)
+        fig.savefig(os.path.join(ori_dir, 'original_{}.png'.format(idx)), dpi=100)
 
         see[np.where(heatmap <= thres)] = np.mean(see)
        
@@ -51,7 +51,7 @@ def main():
         plt.tight_layout()
         fig = plt.gcf()
         plt.draw()
-        fig.savefig(os.path.join(cmap_dir, '{}.png'.format(idx)), dpi=100)
+        fig.savefig(os.path.join(cmap_dir, 'heatmap_{}.png'.format(idx)), dpi=100)
 
         # Plot "Little-heat-part masked"
         plt.figure()
