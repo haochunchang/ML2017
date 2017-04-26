@@ -1,7 +1,6 @@
 import numpy as np
 import sys, csv, pickle
 from utils import feature, utils
-from PIL import Image
 
 import keras
 from keras.models import Sequential, model_from_json
