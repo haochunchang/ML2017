@@ -105,8 +105,8 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     with open("models/cnn_model.json", "w") as json_file:
         json_file.write(model_json)
     
-    plot_model(cnn, to_file='cnn_report_model.png')
- 
+    plot_model(cnn, to_file='cnn_report_model.png', show_shapes=True)
+    
     if pretrained != None:
         cnn.load_weights(pretrained)
         print('Continue Training.')    
@@ -131,7 +131,7 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     # Serialize model weights and save them
     cnn.save_weights('models/cnn_'+str(epochs)+'.h5')
     print("CNN model saved.") 
-        
+
 def cnn_main(train_filepath):
     
     model_filepath = None
