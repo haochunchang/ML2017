@@ -3,6 +3,7 @@ import sys, csv, pickle, random
 from utils import feature, utils
 
 import keras
+from keras.utils import plot_model
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D
@@ -107,7 +108,9 @@ def semi_train(train_filepath, batch_size=64, epochs=80):
                 optimizer='Adam',
                 metrics=['accuracy'])
     print(cnn.summary())
-    
+   
+    plot_model(cnn, to_file='semi_cnn.png', show_shapes=True) 
+ 
     # Train model
     print('Using real-time data augmentation.')
     history = History()
