@@ -3,6 +3,7 @@ import sys, csv, pickle
 from utils import feature, utils
 
 import keras
+from keras.utils import plot_model
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D
@@ -103,6 +104,8 @@ def cnn_train(train_filepath, batch_size=128, epochs=10, data_augmentation=False
     model_json = cnn.to_json()
     with open("models/cnn_model.json", "w") as json_file:
         json_file.write(model_json)
+    
+    plot_model(cnn, to_file='cnn_report_model.png')
  
     if pretrained != None:
         cnn.load_weights(pretrained)
