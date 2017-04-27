@@ -108,7 +108,11 @@ def semi_train(train_filepath, batch_size=64, epochs=80):
                 optimizer='Adam',
                 metrics=['accuracy'])
     print(cnn.summary())
-   
+    
+    model_json = cnn.to_json()
+    with open("models/semi_model.json", "w") as json_file:
+        json_file.write(model_json)
+    
     plot_model(cnn, to_file='semi_cnn.png', show_shapes=True) 
  
     # Train model
