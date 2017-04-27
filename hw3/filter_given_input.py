@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
 
-import os
+import os, pickle
 import matplotlib.pyplot as plt
 from keras.models import load_model
 from keras import backend as K
@@ -15,7 +15,7 @@ def main():
     layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers[1:])
 
     input_img = emotion_classifier.input
-    name_ls = ["conv2d_6", "conv2d_2"]
+    name_ls = ["conv2d_2", "conv2d_3"]
     collect_layers = [ K.function([input_img, K.learning_phase()], [layer_dict[name].output]) for name in name_ls ]
 
     with open('validation_data_augmented.pkl', 'rb') as v:
@@ -24,6 +24,7 @@ def main():
     private_pixels = [ x_val[i].reshape(1, 48, 48, 1) for i in range(len(x_val)) ]
 
     choose_id = 666
+    nb_filter = 64
     photo = private_pixels[choose_id]
     for cnt, fn in enumerate(collect_layers):
         im = fn([photo, 0]) #get the output of that layer
@@ -35,7 +36,7 @@ def main():
             plt.xticks(np.array([]))
             plt.yticks(np.array([]))
             plt.tight_layout()
-        fig.suptitle('Output of layer{} (Given image{})'.format(cnt, choose_id))
+        fig.suptitle('Output of layer {} (Given image {})'.format(name_ls[cnt], choose_id))
         img_path = os.path.join(vis_dir, store_path)
         if not os.path.isdir(img_path):
             os.mkdir(img_path)

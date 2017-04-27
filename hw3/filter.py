@@ -30,13 +30,13 @@ def main():
     layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers)
     input_img = emotion_classifier.input
 
-    name_ls = ['conv2d_6']
+    name_ls = ['conv2d_1', 'conv2d_2']
     collect_layers = [ layer_dict[name].output for name in name_ls ]
 
     NUM_STEPS = 100
     RECORD_FREQ = 10 
     num_step = 100
-    nb_filter = 256
+    nb_filter = 64
 
     for cnt, c in enumerate(collect_layers):
         filter_imgs = [[] for i in range(NUM_STEPS//RECORD_FREQ)]
