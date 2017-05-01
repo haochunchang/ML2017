@@ -63,7 +63,9 @@ def generate_test(W, b, xtest, outfilepath):
         for j in range(15, 31):
             test = test.cross(i, j)
     test = test.delete([14, 52, 105])
-    test = test.bucketize(20)
+
+    for i in [0, 1, 3, 4, 5]: # This Loop added to reproduce
+        test = test.bucketize(i, 20)
 
     with open(outfilepath, 'w') as o:
         o.write("id,label\n")
