@@ -49,8 +49,8 @@ def pca_main(data_path):
         transformed = np.dot(imgs, evecs.T)
         recover = np.dot(evecs.T, transformed.T).T + mu
         error = ((image_list - recover) ** 2 / image_list.shape[0]).sum()   
-        print(np.sqrt(error))
-        if np.sqrt(error) < 0.01:
+        print(np.sqrt(error) / 256)
+        if np.sqrt(error) / 256 < 0.01:
             print(k)
             break 
 
