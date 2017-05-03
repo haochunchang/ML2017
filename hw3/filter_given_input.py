@@ -11,11 +11,14 @@ import numpy as np
 def main():
     vis_dir = './image'
     store_path = 'visual'
-    emotion_classifier = load_model('models/cnn_report.h5')
-    layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers[1:])
+    #emotion_classifier = load_model('models/cnn_report.h5')
+    #layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers[1:])
+    emotion_classifier = load_model('models/semi_report.h5')
+    layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers)
 
     input_img = emotion_classifier.input
-    name_ls = ["conv2d_2", "conv2d_3"]
+    #name_ls = ["conv2d_2", "conv2d_3"]
+    name_ls = ["conv2d_1", "conv2d_2"]
     collect_layers = [ K.function([input_img, K.learning_phase()], [layer_dict[name].output]) for name in name_ls ]
 
     with open('validation_data_augmented.pkl', 'rb') as v:
