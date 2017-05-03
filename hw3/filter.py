@@ -26,7 +26,8 @@ def grad_ascent(num_step,input_image_data,iter_func):
 def main():
     filter_dir = './image'
     store_path = 'filters'
-    emotion_classifier = load_model('./models/cnn_report.h5')
+    #emotion_classifier = load_model('./models/cnn_report.h5')
+    emotion_classifier = load_model('./models/semi_report.h5')
     layer_dict = dict([layer.name, layer] for layer in emotion_classifier.layers)
     input_img = emotion_classifier.input
 
