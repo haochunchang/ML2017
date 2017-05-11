@@ -24,14 +24,13 @@ def pca_main(data_path):
     
     # Compute SVD
     U, s, V = np.linalg.svd(imgs.T, full_matrices=False)
-
+    
 #-----------------Report 1.1---------------------------------------------
     
     misc.imsave(os.path.join(img_path, 'mu_face.png'), mu.reshape(64,64))
     plot_faces((3, 3), U.T[:9].reshape(9, 64, 64))
 
 #-----------------Report 1.2----------------------------------------------
-    
     # Plot 100 original faces
     plot_faces((10, 10), image_list.reshape(len(image_list), 64, 64))
     
@@ -48,9 +47,10 @@ def pca_main(data_path):
         evecs = U.T[:k]
         transformed = np.dot(imgs, evecs.T)
         recover = np.dot(evecs.T, transformed.T).T + mu
-        error = ((image_list - recover) ** 2 / image_list.shape[0]).sum()   
-        print(np.sqrt(error) / 256)
-        if np.sqrt(error) / 256 < 0.01:
+        error = ((image_list - recover) ** 2 / image_list.shape[0]).sum()
+        error = np.sqrt(error / 4096)
+        print(error)
+        if error / 256 < 0.01:
             print(k)
             break 
 
@@ -63,6 +63,7 @@ def plot_faces(shape=(3, 3), images=None):
             axes.append(plt.subplot2grid(shape, (i,j)))
     
     for i in range(shape[0]*shape[1]):
+        print(plt.cm.gray(images[i]))
         axes[i].imshow(images[i], cmap=plt.cm.gray)
         axes[i].axis('off')
     plt.show()
