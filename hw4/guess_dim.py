@@ -20,11 +20,13 @@ def predict_dim(data):
     # predict
     dims = []
     test = []
-    for i in range(200):
-        evals = get_eigenvalues(data[str(i)])
-        test.append(evals)
-    test = np.array(test)
-    np.savetxt('test_data.txt', test)
+    #for i in range(200):
+    #    evals = get_eigenvalues(data[str(i)])
+    #    test.append(evals)
+    #test = np.array(test)
+    #np.savetxt('test_data.txt', test)
+    
+    test = np.loadtxt('test_data.txt')
     dims = model.predict(test)
 
     return dims
