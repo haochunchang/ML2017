@@ -28,7 +28,7 @@ def main():
     # Load in hand rotation data
     filelist = sorted(glob.glob('./data/hand/*.png'))
     image_list = [misc.imread(filename) for filename in filelist]   
-    imgs = np.array(image_list).reshape(len(image_list), 480*512)
+    imgs = np.array(image_list).reshape(len(image_list), 480, 512)
 
     dims = predict_dim(imgs)
     print(dims.mean())

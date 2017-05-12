@@ -24,6 +24,7 @@ def predict_dim(data):
         evals = get_eigenvalues(data[str(i)])
         test.append(evals)
     test = np.array(test)
+    np.savetxt('test_data.txt', test)
     dims = model.predict(test)
 
     return dims
