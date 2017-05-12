@@ -1,18 +1,18 @@
 import sys, os, pickle
 import math
 import numpy as np
-from sklearn.neighbors import NearestNeighbors as kNN
+from sklearn.neighbors import NearestNeighbors
 from sklearn.svm import LinearSVR as SVR
 from generate_data import get_eigenvalues
 
 def predict_dim(data):
     
     # Train model
-    npzfile = np.load('train_data.npz')
-    X = npzfile['X']
-    y = npzfile['y']
-    model = SVR(C=1.5)
-    model.fit(X, y)   
+    #npzfile = np.load('train_data.npz')
+    #X = npzfile['X']
+    #y = npzfile['y']
+    #model = SVR(C=1.5)
+    #model.fit(X, y)   
 
     with open('model/svr.pkl', 'rb') as f:
         model = pickle.load(f)

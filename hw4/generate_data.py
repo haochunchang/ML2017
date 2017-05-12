@@ -1,6 +1,6 @@
 import numpy as np
 import math, pickle
-from sklearn.neighbors import NearestNeighbors as kNN
+from sklearn.neighbors import NearestNeighbors
 
 def elu(arr):
     return np.where(arr > 0, arr, np.exp(arr) - 1)
