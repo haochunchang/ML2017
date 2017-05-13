@@ -1,5 +1,4 @@
 import sys, pickle
-import string
 import word2vec
 import nltk
 import nltk.data
