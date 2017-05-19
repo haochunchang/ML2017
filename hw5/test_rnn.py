@@ -3,68 +3,42 @@ import sys, pickle
 import keras
 from keras.models import model_from_json
 from keras.preprocessing import sequence, text
-
-def predict(rnn, x_test, batch_size=128):
-
-    out = rnn.predict_proba(x_test, batch_size=batch_size, verbose=1) 
-    best_thresholds = np.loadtxt('best_threshold.txt')
-    y_pred = np.array([[1 if out[i,j]>=best_thresholds[j] else 0 for j in range(out.shape[1])] for i in range(len(x_test))])    
-
-    # Load in tokenizer
-    with open('tag_tokenizer.pkl', 'rb') as f:
-        y_token = pickle.load(f)
-
-    # Translate class number to tags
-    trans = y_token.word_index
-    predicted_tags = []
-    
-    for i in range(y_pred.shape[0]):
-        for idxs in np.nonzero(y_pred[i]):
-            if len(idxs) == 0:
-                predicted_tags.append([[key for key, val in trans.items() if val == out[i].argmax()+1]])
-            else:
-                predicted_tags.append([[key for key, val in trans.items() if val == idx+1] for idx in idxs])
-
-    return predicted_tags
+from sklearn.metrics import f1_score
+import utils
 
 def nn_test(test_filepath, outfilepath):
     
-    # Loading in testing data & Preprocessing
-    idx = []
-    para = []
-    with open(test_filepath, 'r', encoding='latin-1') as f:
-        for line in f:
-            if line.split(',')[0] == 'id':
-                continue
-            else:
-                line = line.split(',')
-                ix = int(line[0])
-                para_text = ''.join(line[1:])
-                idx.append(ix)
-                para.append(para_text)
+    # Load in pre-trained tokenizer.
+    with open('text_tokenizer.pkl', 'rb') as f:
+        tokenizer = pickle.load(f)
+   
+    with open('tag_mapping.pkl', 'rb') as f:
+        tag_list = pickle.load(f)
 
-    x_tokenizer = text.Tokenizer()
-    x_tokenizer.fit_on_texts(para)
-    seqs = x_tokenizer.texts_to_sequences(para)    
-    x_test = sequence.pad_sequences(seqs)
-
+    (_, x_test, _) = utils.read_data(test_filepath, False)
+    seqs = tokenizer.texts_to_sequences(x_test)    
+    x_test = tokenizer.sequences_to_matrix(seqs, mode='tfidf')
+    #x_test = sequence.pad_sequences(seqs, maxlen=306)
+    
     # Loading in trained model 
     with open("models/rnn_model.json", "r") as json_file:
         rnn = model_from_json(json_file.read())
-    rnn.load_weights('models/rnn_20.h5')
+    rnn.load_weights('models/rnn.h5')
 
     # Predict
-    with open(outfilepath, 'w') as o:
-        o.write("id,tags\n") 
-        y = predict(rnn, x_test, batch_size=64) 
-        for i in range(len(y)):   
-            o.write(str(i))
-            for j in range(len(y[i])):
-                if j == 0:
-                    o.write(',"'+str(y[i][j])[2:-2])
-                else:
-                    o.write(','+str(y[i][j])[2:-2])
-            o.write('"\n')
+    thresh = 0.4
+    Y_pred = rnn.predict(x_test, batch_size=128, verbose=1)
+    with open(outfilepath,'w') as output:
+        print ('\"id\",\"tags\"',file=output)
+        Y_pred_thresh = (Y_pred > thresh).astype('int')
+        for index,labels in enumerate(Y_pred_thresh):
+            labels = [tag_list[i] for i,value in enumerate(labels) if value==1 ]
+            if ' '.join(labels) == '':
+                i = Y_pred[index].argmax()
+                labels = [tag_list[i]]
+            labels_original = ' '.join(labels)
+            print ('\"%d\",\"%s\"'%(index,labels_original),file=output)
+
     print("Testing result stored in %s" % outfilepath)
 
 if __name__ == "__main__":
