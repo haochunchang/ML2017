@@ -1,0 +1,4 @@
+matplotlib
+sklearn==0.18.1
+keras==2.0.2
+tensorflow==1.0.1
