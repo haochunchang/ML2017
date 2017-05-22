@@ -12,10 +12,8 @@ from keras.layers.embeddings import Embedding
 from keras.callbacks import ModelCheckpoint, EarlyStopping 
 from keras import backend as K
 from keras.callbacks import TensorBoard, Callback
+from keras.preprocessing import sequence
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
 
 K.set_image_dim_ordering('tf')
 
@@ -49,7 +47,7 @@ def rnn_train(x_train, y_train, batch_size=128, epochs=10, pretrained=None):
     with open('text_tokenizer.pkl', 'rb') as f:
         tokenizer = pickle.load(f)
     
-    x_train = keras.preprocessing.sequence.pad_sequences(x_train)
+    x_train = sequence.pad_sequences(x_train)
 
     # Split validation data
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=6)
@@ -63,7 +61,7 @@ def rnn_train(x_train, y_train, batch_size=128, epochs=10, pretrained=None):
                             input_length=x_train.shape[1],
                             trainable=False))
     #rnn.add(Flatten()) 
-    rnn.add(LSTM(256, activation='tanh', dropout=0.1))
+    rnn.add(GRU(256, dropout=0.6))
     rnn.add(Dense(256, activation='relu'))
     rnn.add(Dropout(0.2))
     rnn.add(Dense(128, activation='relu'))
@@ -101,6 +99,7 @@ def rnn_train(x_train, y_train, batch_size=128, epochs=10, pretrained=None):
  
     else:
         # Train model
+        print('Start training from scratch.')
         rnn.fit(x_train, y_train, batch_size=batch_size,
             verbose=1, epochs=epochs, validation_data=(x_val, y_val),
             callbacks=[earlystopping, checkpointer])
@@ -112,7 +111,7 @@ def rnn_main(train_filepath):
     #x_train = np.loadtxt('x_train_tfidf.txt')
     model_filepath = None#'models/rnn.h5'
     epochs = 100
-    x_train, y_train = utils.preprocess(train_filepath, './data/test_data.csv', save_token=False)
+    x_train, y_train = utils.preprocess(train_filepath, './data/test_data.csv', save_token=True)
     rnn_train(x_train, y_train, batch_size=128, epochs=epochs, pretrained=model_filepath)    
 
 if __name__ == "__main__":
