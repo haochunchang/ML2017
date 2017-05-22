@@ -17,8 +17,7 @@ def nn_test(test_filepath, outfilepath):
 
     (_, x_test, _) = utils.read_data(test_filepath, False)
     seqs = tokenizer.texts_to_sequences(x_test)    
-    x_test = tokenizer.sequences_to_matrix(seqs, mode='tfidf')
-    #x_test = sequence.pad_sequences(seqs, maxlen=306)
+    x_test = sequence.pad_sequences(seqs, maxlen=306)
     
     # Loading in trained model 
     with open("models/rnn_model.json", "r") as json_file:
