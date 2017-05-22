@@ -1,5 +1,6 @@
 import pickle
 import matplotlib.pyplot as plt
+import matplotlib
 from keras.preprocessing import text
 import utils
 import numpy as np
@@ -20,12 +21,12 @@ def main():
         word, freq = d
         words.append(word)
         freqs.append(freq)
-
-    plt.figure(figsize=(20,10))
+    matplotlib.rcParams.update({'font.size': 25})
+    plt.figure(figsize=(40,30))
     plt.barh(range(len(words)), freqs, align='center')
     plt.yticks(range(len(words)), words)
     plt.title('Tags count')
-    plt.show()
+    plt.savefig('tag_counts.png', dpi=60)
 
 if __name__ == "__main__":
     main()

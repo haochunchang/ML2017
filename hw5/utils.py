@@ -134,5 +134,46 @@ def dump_history(store_path,logs):
         for acc in logs.val_accs:
             f.write('{}\n'.format(acc))
 
+def get_prediction_labels(filename):
+	
+    with open('best_tag_mapping.pkl', 'rb') as f:
+        label_map = pickle.load(f)
+	
+    with open(filename, 'r') as f:
+        f.readline()
+        lines = f.readlines()
+        lines = [line.rstrip('\n').replace('"', '') for line in lines]
+    labels = [line.split(',')[1] for line in lines]
+    
+    # print labels
+    train_labels = np.zeros((len(labels), len(label_map)), dtype=np.int)
+    for ds in range(len(labels)):
+        idx = []
+        for e in labels[ds].split(' '):
+            idx.append(label_map.index(e))
+        train_labels[ds][idx] = 1
+
+    return train_labels
+
+def save_prediction_results(filename, prediction):
+    
+    THRESH = 0.5
+    with open('best_tag_mapping.pkl', 'rb') as f:
+        labels = pickle.load(f)
+
+    label_map = np.array(labels)
+    
+    res_str = '\"id\",\"tags\"\n'
+    for i in range(len(prediction)):
+        if prediction[i].max() < THRESH:
+            idx = prediction[i].argmax()
+            res_str += '\"%d\",\"%s\"\n' % (i, label_map[idx])
+        else:
+            idx = prediction[i] >= THRESH
+            res_str += '\"%d\",\"%s\"\n' % (i, ' '.join(label_map[idx]))
+    
+    with open(filename, 'w') as of:
+        of.write(res_str)
+
 if __name__ == "__main__":
-    load_embedding(100, pretrain='glove')
+    pass
