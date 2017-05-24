@@ -1,4 +1,4 @@
 cd models
-wget https://github.com/haochunchang/ML2017/releases/tag/v.0.53887-public 
+cat best* > best.h5
 cd ../
-python3.5 ensemble.py $1 $2
+python3 ensemble.py $1 $2
