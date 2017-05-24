@@ -5,7 +5,7 @@ import word2vec
 from keras.preprocessing import sequence, text
 from keras.models import model_from_json
 
-def load_embedding(embed_dim=100, pretrain='word2vec'):
+def load_embedding(embed_dim=100, pretrain='glove'):
 
     # Load Glove pre-trained model and preprocessing 
     if pretrain == 'glove':    
@@ -18,18 +18,6 @@ def load_embedding(embed_dim=100, pretrain='word2vec'):
             coefs = np.asarray(values[1:], dtype='float32')
             embeddings_index[word] = coefs
         f.close()
-
-    # Load word2vec model only trained with train_data and test_data    
-    elif pretrain == "word2vec":
-        model = word2vec.load('./models/wordvec.bin')
-   
-        # Prepare embedding dictionary
-        embeddings_index = {}
-        for i in range(model.vocab.shape[0]):
-            vocab, vector = model.vocab[i], model.vectors[i]
-            word = vocab
-            coefs = np.asarray(vector, dtype='float32')
-            embeddings_index[word] = coefs
 
     # Load tokenizer
     with open('text_tokenizer.pkl', 'rb') as t:
