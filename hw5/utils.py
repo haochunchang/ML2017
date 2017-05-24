@@ -1,7 +1,6 @@
 import os, pickle
 import numpy as np
 import keras
-import word2vec
 from keras.preprocessing import sequence, text
 from keras.models import model_from_json
 
