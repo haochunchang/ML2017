@@ -4,12 +4,11 @@ import os, sys, pickle
 import keras
 from keras.models import model_from_json
 
-   
 def main(test_filepath, outfilepath):
 
     # Load in training data and preprocessing
-    test = pd.read_csv(test_filepath)
-    
+    test = pd.read_csv(os.path.join(test_dir, 'test.csv'))
+
     users = test['UserID'].values
     movies = test['MovieID'].values
 
@@ -21,7 +20,7 @@ def main(test_filepath, outfilepath):
     pred = dnn.predict([movies, users], batch_size=128, verbose=1) 
     sub = pd.DataFrame()
     sub['TestDataID'] = test['TestDataID']
-    sub['Rating'] = pred
+    sub['Rating'] = pred * 5
     sub.to_csv(outfilepath, index=False) 
      
 if __name__ == "__main__":
