@@ -3,7 +3,7 @@ import pandas as pd
 import os, sys
 import keras
 from keras.layers import Input, Embedding, Dense, Dropout
-from keras.layers import merge, Flatten
+from keras.layers import merge, Flatten, Add
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model, Sequential
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -25,11 +25,11 @@ def build_model(n_users, n_movies, factors=20):
     user_vec = Dropout(0.5)(user_vec)
 
     nn = merge([movie_vec, user_vec], mode='dot')
-    #nn = Dropout(0.5)(Dense(factors, activation='relu')(nn))
-    #nn = BatchNormalization()(nn)
-    #nn = Dropout(0.5)(Dense(128, activation='relu')(nn))
-    #nn = BatchNormalization()(nn)
+    
+    movie_bias = Flatten()(Embedding(n_movies, 1, name='movie_bias', input_length=1)(movie_input)) 
+    user_bias = Flatten()(Embedding(n_users, 1, name='users_bias', input_length=1)(user_input))
 
+    nn = Add()([nn, movie_bias, user_bias])
     result = Dense(1, activation='relu')(nn)
 
     model = Model([movie_input, user_input], result)
@@ -41,7 +41,6 @@ def main(train_filepath):
 
     # Load in training data and preprocessing
     train = pd.read_csv(train_filepath)
-    user = pd.read_csv('./data/users.csv', sep=":")
  
     users = train['UserID'].values
     movies = train['MovieID'].values
@@ -50,10 +49,8 @@ def main(train_filepath):
     n_users = users.max()
     n_movies = movies.max()
     
-    #ratings = ratings / ratings.max()   
-    
     # Build model and fit it
-    model = build_model(n_users=n_users, n_movies=n_movies, factors=128)
+    model = build_model(n_users=n_users, n_movies=n_movies, factors=256)
 
     model_json = model.to_json()    
     with open("models/dnn_model.json", "w") as json_file:
