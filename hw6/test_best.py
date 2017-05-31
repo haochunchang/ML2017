@@ -16,13 +16,17 @@ def main(test_dir, outfilepath):
     # Load models
     with open("models/sbl_model.json", "r") as json_file:
         dnn = model_from_json(json_file.read())
+    
+    #plot_model(dnn, to_file='bias_model.png', show_shapes=True)
+ 
     dnn.load_weights('models/sbl.h5')
-
-    pred = dnn.predict([movies, users], batch_size=128, verbose=1) 
+    
+    pred = dnn.predict([movies, users], batch_size=256, verbose=1) 
     sub = pd.DataFrame()
     sub['TestDataID'] = test['TestDataID']
     sub['Rating'] = pred
     sub.to_csv(outfilepath, index=False) 
-     
+    print('Test result stored in {}'.format(outfilepath))
+ 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2])
