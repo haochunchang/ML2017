@@ -1,1 +1,1 @@
-python3 test_best.py $1 $2
+python3 ensemble.py $1 $2
