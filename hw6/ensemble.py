@@ -10,8 +10,8 @@ def ensemble(data_dir, outfilepath):
     matplus = test_matplus.main(data_dir)
     dnn = test_dnn.main(data_dir)
 
-    weights = [0.3, 0.2, 0.5]
-    pred = weights[0] * best['Rating'] + weights[1] * matplus['Rating'] + weights[2] * dnn['Rating']
+    weights = [0.4, 0.2, 0.4]
+    pred = weights[0] * best + weights[1] * matplus + weights[2] * dnn
     
     sub = pd.DataFrame()
     sub['TestDataID'] = test['TestDataID']
