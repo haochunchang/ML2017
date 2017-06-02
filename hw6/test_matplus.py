@@ -5,7 +5,7 @@ import keras
 from keras.models import model_from_json
 from keras.preprocessing import text, sequence
 
-def main(data_dir, outfilepath):
+def main(data_dir):
 
     # Load in training data and preprocessing
     test = pd.read_csv(os.path.join(data_dir, 'test.csv'))
@@ -41,12 +41,13 @@ def main(data_dir, outfilepath):
     dnn.load_weights('models/matplus_dnn.h5')
 
     pred = dnn.predict([movies, users, title, genre, test_other], batch_size=512, verbose=1) 
-    sub = pd.DataFrame()
-    sub['TestDataID'] = test['TestDataID']
-    sub['Rating'] = pred
-    sub = sub.sort_values('TestDataID', axis=0)
-    sub.to_csv(outfilepath, index=False) 
-    print('Test result stored in {}'.format(outfilepath))
- 
+    #sub = pd.DataFrame()
+    #sub['TestDataID'] = test['TestDataID']
+    #sub['Rating'] = pred
+    #sub = sub.sort_values('TestDataID', axis=0)
+    #sub.to_csv(outfilepath, index=False) 
+    #print('Test result stored in {}'.format(outfilepath))
+    return pred
+
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2])
