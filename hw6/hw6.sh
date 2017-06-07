@@ -1,1 +1,1 @@
-python3 test_matrix.py $1 $2 
+python3.5 test_matrix.py $1 $2 
