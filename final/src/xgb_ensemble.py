@@ -1,31 +1,29 @@
-# See notebook
-#   https://www.kaggle.com/aharless/probabilistic-version-of-small-improvements/notebook
-# for some explanation of small improvements
+# thank's to https://www.kaggle.com/aharless for code sharing
+# https://www.kaggle.com/aharless/jiwon-small-improvements-for-magic-number-results/versions
 
 # Parameters
-prediction_stderr = 0.0070  #  assumed standard error of predictions
+prediction_stderr = 0.0073  #  assumed standard error of predictions
                           #  (smaller values make output closer to input)
 train_test_logmean_diff = 0.1  # assumed shift used to adjust frequencies for time trend
 probthresh = 90  # minimum probability*frequency to use new price instead of just rounding
 rounder = 2  # number of places left of decimal point to zero
 
-
-
-# RUN THE MODELS
 import pickle
 import numpy as np
 import pandas as pd
 from sklearn import model_selection, preprocessing
 import xgboost as xgb
+
 import datetime
 from scipy.stats import norm
-
+    
 #load files
 train = pd.read_csv('../input/train.csv', parse_dates=['timestamp'])
 test = pd.read_csv('../input/test.csv', parse_dates=['timestamp'])
 id_test = test.id
 
 #clean data
+print('Data Clean...')
 bad_index = train[train.life_sq > train.full_sq].index
 train.loc[bad_index, "life_sq"] = np.NaN
 equal_index = [601,1896,2791]
@@ -99,21 +97,22 @@ train.loc[train.full_sq == 0, 'full_sq'] = 50
 train = train[train.price_doc/train.full_sq <= 600000]
 train = train[train.price_doc/train.full_sq >= 10000]
 
+print('Feature Engineering...')
 # Add month-year
-month_year = (train.timestamp.dt.month + train.timestamp.dt.year * 100)
+month_year = (train.timestamp.dt.month*30 + train.timestamp.dt.year * 365)
 month_year_cnt_map = month_year.value_counts().to_dict()
 train['month_year_cnt'] = month_year.map(month_year_cnt_map)
 
-month_year = (test.timestamp.dt.month + test.timestamp.dt.year * 100)
+month_year = (test.timestamp.dt.month*30 + test.timestamp.dt.year * 365)
 month_year_cnt_map = month_year.value_counts().to_dict()
 test['month_year_cnt'] = month_year.map(month_year_cnt_map)
 
 # Add week-year count
-week_year = (train.timestamp.dt.weekofyear + train.timestamp.dt.year * 100)
+week_year = (train.timestamp.dt.weekofyear*7 + train.timestamp.dt.year * 365)
 week_year_cnt_map = week_year.value_counts().to_dict()
 train['week_year_cnt'] = week_year.map(week_year_cnt_map)
 
-week_year = (test.timestamp.dt.weekofyear + test.timestamp.dt.year * 100)
+week_year = (test.timestamp.dt.weekofyear*7 + test.timestamp.dt.year * 365)
 week_year_cnt_map = week_year.value_counts().to_dict()
 test['week_year_cnt'] = week_year.map(week_year_cnt_map)
 
@@ -125,11 +124,11 @@ test['month'] = test.timestamp.dt.month
 test['dow'] = test.timestamp.dt.dayofweek
 
 # Other feature engineering
-train['rel_floor'] = train['floor'] / train['max_floor'].astype(float)
-train['rel_kitch_sq'] = train['kitch_sq'] / train['full_sq'].astype(float)
+train['rel_floor'] = 0.05+train['floor'] / train['max_floor'].astype(float)
+train['rel_kitch_sq'] = 0.05+train['kitch_sq'] / train['full_sq'].astype(float)
 
-test['rel_floor'] = test['floor'] / test['max_floor'].astype(float)
-test['rel_kitch_sq'] = test['kitch_sq'] / test['full_sq'].astype(float)
+test['rel_floor'] = 0.05+test['floor'] / test['max_floor'].astype(float)
+test['rel_kitch_sq'] = 0.05+test['kitch_sq'] / test['full_sq'].astype(float)
 
 train.apartment_name=train.sub_area + train['metro_km_avto'].astype(str)
 test.apartment_name=test.sub_area + train['metro_km_avto'].astype(str)
@@ -137,8 +136,37 @@ test.apartment_name=test.sub_area + train['metro_km_avto'].astype(str)
 train['room_size'] = train['life_sq'] / train['num_room'].astype(float)
 test['room_size'] = test['life_sq'] / test['num_room'].astype(float)
 
-#########################################################################
+train['area_per_room'] = train['life_sq'] / train['num_room'].astype(float) #rough area per room
+train['livArea_ratio'] = train['life_sq'] / train['full_sq'].astype(float) #rough living area
+train['yrs_old'] = 2017 - train['build_year'].astype(float) #years old from 2017
+train['avgfloor_sq'] = train['life_sq']/train['max_floor'].astype(float) #living area per floor
+train['pts_floor_ratio'] = train['public_transport_station_km']/train['max_floor'].astype(float)
+# looking for significance of apartment buildings near public t 
+train['room_size'] = train['life_sq'] / train['num_room'].astype(float)
+# doubled a var by accident
+# when removing one score did not improve...
+train['gender_ratio'] = train['male_f']/train['female_f'].astype(float)
+train['kg_park_ratio'] = train['kindergarten_km']/train['park_km'].astype(float) #significance of children?
+train['high_ed_extent'] = train['school_km'] / train['kindergarten_km'] #schooling
+train['pts_x_state'] = train['public_transport_station_km'] * train['state'].astype(float) #public trans * state of listing
+train['lifesq_x_state'] = train['life_sq'] * train['state'].astype(float) #life_sq times the state of the place
+train['floor_x_state'] = train['floor'] * train['state'].astype(float) #relative floor * the state of the place
 
+test['area_per_room'] = test['life_sq'] / test['num_room'].astype(float)
+test['livArea_ratio'] = test['life_sq'] / test['full_sq'].astype(float)
+test['yrs_old'] = 2017 - test['build_year'].astype(float)
+test['avgfloor_sq'] = test['life_sq']/test['max_floor'].astype(float) #living area per floor
+test['pts_floor_ratio'] = test['public_transport_station_km']/test['max_floor'].astype(float) #apartments near public t?
+test['room_size'] = test['life_sq'] / test['num_room'].astype(float)
+test['gender_ratio'] = test['male_f']/test['female_f'].astype(float)
+test['kg_park_ratio'] = test['kindergarten_km']/test['park_km'].astype(float)
+test['high_ed_extent'] = test['school_km'] / test['kindergarten_km']
+test['pts_x_state'] = test['public_transport_station_km'] * test['state'].astype(float) #public trans * state of listing
+test['lifesq_x_state'] = test['life_sq'] * test['state'].astype(float)
+test['floor_x_state'] = test['floor'] * test['state'].astype(float)
+
+#########################################################################
+print('Rate Mults...')
 # Aggreagte house price data derived from 
 # http://www.globalpropertyguide.com/real-estate-house-prices/R#russia
 # by luckyzhou
@@ -153,8 +181,8 @@ rate_2014_q1 = rate_2014_q2 / 1.0126
 rate_2013_q4 = rate_2014_q1 / 0.9902
 rate_2013_q3 = rate_2013_q4 / 1.0041
 rate_2013_q2 = rate_2013_q3 / 1.0044
-rate_2013_q1 = rate_2013_q2 / 1.0104  # This is 1.002 (relative to mult), close to 1:
-rate_2012_q4 = rate_2013_q1 / 0.9832  #     maybe use 2013q1 as a base quarter and get rid of mult?
+rate_2013_q1 = rate_2013_q2 / 1.0104
+rate_2012_q4 = rate_2013_q1 / 0.9832  
 rate_2012_q3 = rate_2012_q4 / 1.0277
 rate_2012_q2 = rate_2012_q3 / 1.0279
 rate_2012_q1 = rate_2012_q2 / 1.0279
@@ -234,12 +262,12 @@ train['price_doc'] = train['price_doc'] * train['average_q_price']
 
 #########################################################################################################
 
-mult = 1.054880504 # Trying another magic number
+mult = 1.054880504
 train['price_doc'] = train['price_doc'] * mult
 y_train = train["price_doc"]
 
 #########################################################################################################
-
+print('Running Model 1...')
 x_train = train.drop(["id", "timestamp", "price_doc", "average_q_price"], axis=1)
 #x_test = test.drop(["id", "timestamp", "average_q_price"], axis=1)
 x_test = test.drop(["id", "timestamp"], axis=1)
@@ -270,19 +298,20 @@ xgb_params = {
 dtrain = xgb.DMatrix(x_train, y_train)
 dtest = xgb.DMatrix(x_test)
 
-num_boost_rounds = 422
+
+#num_boost_rounds = 422
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round=num_boost_rounds)
-#with open('gunja_model.pkl', 'wb') as f:
-#    pickle.dump(model,f)
 
 with open('../model/gunja_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
+
 y_predict = model.predict(dtest)
 gunja_output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
 
-######################################################################################################
 
+######################################################################################################
+print('Running Model 2...')
 train = pd.read_csv('../input/train.csv')
 test = pd.read_csv('../input/test.csv')
 id_test = test.id
@@ -318,10 +347,8 @@ xgb_params = {
 dtrain = xgb.DMatrix(x_train, y_train)
 dtest = xgb.DMatrix(x_test)
 
-num_boost_rounds = 385  # This was the CV output, as earlier version shows
+#num_boost_rounds = 385  # This was the CV output, as earlier version shows
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
-#with open('reynaldo_model.pkl', 'wb') as f:
-#    pickle.dump(model,f)
 
 with open('../model/reynaldo_model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -331,8 +358,7 @@ output = pd.DataFrame({'id': id_test, 'price_doc': y_predict})
 
 
 #######################################################################################################
-
-
+print('Running Model 3...')
 df_train = pd.read_csv("../input/train.csv", parse_dates=['timestamp'])
 df_test = pd.read_csv("../input/test.csv", parse_dates=['timestamp'])
 df_macro = pd.read_csv("../input/macro.csv", parse_dates=['timestamp'])
@@ -354,12 +380,12 @@ df_all = df_all.join(df_macro, on='timestamp', rsuffix='_macro')
 print(df_all.shape)
 
 # Add month-year
-month_year = (df_all.timestamp.dt.month + df_all.timestamp.dt.year * 100)
+month_year = (df_all.timestamp.dt.month*30 + df_all.timestamp.dt.year * 365)
 month_year_cnt_map = month_year.value_counts().to_dict()
 df_all['month_year_cnt'] = month_year.map(month_year_cnt_map)
 
 # Add week-year count
-week_year = (df_all.timestamp.dt.weekofyear + df_all.timestamp.dt.year * 100)
+week_year = (df_all.timestamp.dt.weekofyear*7 + df_all.timestamp.dt.year * 365)
 week_year_cnt_map = week_year.value_counts().to_dict()
 df_all['week_year_cnt'] = week_year.map(week_year_cnt_map)
 
@@ -370,6 +396,24 @@ df_all['dow'] = df_all.timestamp.dt.dayofweek
 # Other feature engineering
 df_all['rel_floor'] = df_all['floor'] / df_all['max_floor'].astype(float)
 df_all['rel_kitch_sq'] = df_all['kitch_sq'] / df_all['full_sq'].astype(float)
+
+## same ones as above 
+df_all['area_per_room'] = df_all['life_sq'] / df_all['num_room'].astype(float)
+df_all['livArea_ratio'] = df_all['life_sq'] / df_all['full_sq'].astype(float)
+df_all['yrs_old'] = 2017 - df_all['build_year'].astype(float)
+df_all['avgfloor_sq'] = df_all['life_sq']/df_all['max_floor'].astype(float) #living area per floor
+df_all['pts_floor_ratio'] = df_all['public_transport_station_km']/df_all['max_floor'].astype(float) #apartments near public t?
+df_all['room_size'] = df_all['life_sq'] / df_all['num_room'].astype(float)
+df_all['gender_ratio'] = df_all['male_f']/df_all['female_f'].astype(float)
+df_all['kg_park_ratio'] = df_all['kindergarten_km']/df_all['park_km'].astype(float)
+df_all['high_ed_extent'] = df_all['school_km'] / df_all['kindergarten_km']
+df_all['pts_x_state'] = df_all['public_transport_station_km'] * df_all['state'].astype(float) #public trans * state of listing
+df_all['lifesq_x_state'] = df_all['life_sq'] * df_all['state'].astype(float)
+df_all['floor_x_state'] = df_all['floor'] * df_all['state'].astype(float)
+
+##macro feature adds
+df_all['micex_cbi_ratio'] = df_all['micex_cbi_tr']/df_all['micex'].astype(float)
+df_all['micex_rgbi_ratio'] = df_all['micex_rgbi_tr']/df_all['micex'].astype(float)
 
 train['building_name'] = pd.factorize(train.sub_area + train['metro_km_avto'].astype(str))[0]
 test['building_name'] = pd.factorize(test.sub_area + test['metro_km_avto'].astype(str))[0]
@@ -446,10 +490,9 @@ xgb_params = {
 dtrain = xgb.DMatrix(X_train, y_train, feature_names=df_columns)
 dtest = xgb.DMatrix(X_test, feature_names=df_columns)
 
-num_boost_rounds = 420  # From Bruno's original CV, I think
+#num_boost_rounds = 420  # From Bruno's original CV, I think
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round=num_boost_rounds)
-#with open('bruno_model.pkl', 'wb') as f:
-#    pickle.dump(model,f)
+
 with open('../model/bruno_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
@@ -459,8 +502,7 @@ df_sub = pd.DataFrame({'id': id_test, 'price_doc': y_pred})
 
 
 ####################################################################################################3
-
-
+print('Combining Models....')
 
 first_result = output.merge(df_sub, on="id", suffixes=['_louis','_bruno'])
 first_result["price_doc"] = np.exp( .714*np.log(first_result.price_doc_louis) +
@@ -473,12 +515,7 @@ result["price_doc"] = np.exp( .78*np.log(result.price_doc_follow) +
 result["price_doc"] =result["price_doc"] *0.9915        
 result.drop(["price_doc_louis","price_doc_bruno","price_doc_follow","price_doc_gunja"],axis=1,inplace=True)
 
-#result = result.merge(gunja_output_var, on="id", suffixes=['_ori','_gunja_var'])
-#result["price_doc"] = np.exp( .78*np.log(result.price_doc_ori) +
-#                              .22*np.log(result.price_doc_gunja_var) )
-
 # APPLY PROBABILISTIC IMPROVEMENTS
-
 preds = result
 train = pd.read_csv('../input/train.csv')
 test = pd.read_csv('../input/test.csv')
@@ -496,11 +533,12 @@ invest_preds = pd.DataFrame(test_invest_ids).merge(preds, on="id")
 lnp = np.log(invest.price_doc)
 stderr = lnp.std()
 lfreqs = lnp.value_counts().sort_index()
-
+	
 # Adjust frequencies for time trend
 lnp_diff = train_test_logmean_diff
 lnp_mean = lnp.mean()
 lnp_newmean = lnp_mean + lnp_diff
+
 
 def norm_diff(value):
     return norm.pdf((value-lnp_diff)/stderr) / norm.pdf(value/stderr)
@@ -535,6 +573,5 @@ newpricedf = pd.DataFrame( {"id":test_invest_ids.values, "price_doc":prices} )
 newpreds = preds.merge(newpricedf, on="id", how="left", suffixes=("_old",""))
 newpreds.loc[newpreds.price_doc.isnull(),"price_doc"] = newpreds.price_doc_old
 newpreds.drop("price_doc_old",axis=1,inplace=True)
-newpreds.head()
 
 newpreds.to_csv('different_result.csv', index=False)
