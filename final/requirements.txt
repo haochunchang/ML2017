@@ -1,0 +1,6 @@
+numpy
+scipy
+pandas
+sklearn
+xgboost==0.6
+
