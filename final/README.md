@@ -1,4 +1,4 @@
-To reproduce Public LB score: 0.31038
+To reproduce Public LB score
 Simply run:
 ```
 python3.5 xgb_ensemble.py
