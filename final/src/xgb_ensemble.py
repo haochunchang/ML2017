@@ -302,7 +302,7 @@ dtest = xgb.DMatrix(x_test)
 #num_boost_rounds = 422
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round=num_boost_rounds)
 
-with open('../model/gunja_model.pkl', 'rb') as f:
+with open('./model/gunja_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 
@@ -350,7 +350,7 @@ dtest = xgb.DMatrix(x_test)
 #num_boost_rounds = 385  # This was the CV output, as earlier version shows
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round= num_boost_rounds)
 
-with open('../model/reynaldo_model.pkl', 'rb') as f:
+with open('./model/reynaldo_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 y_predict = model.predict(dtest)
@@ -493,7 +493,7 @@ dtest = xgb.DMatrix(X_test, feature_names=df_columns)
 #num_boost_rounds = 420  # From Bruno's original CV, I think
 #model = xgb.train(dict(xgb_params, silent=0), dtrain, num_boost_round=num_boost_rounds)
 
-with open('../model/bruno_model.pkl', 'rb') as f:
+with open('./model/bruno_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 y_pred = model.predict(dtest)
